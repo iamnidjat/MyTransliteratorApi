@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.services.transliteration_service import from_cyrillic_to_latin_az
+from app.services.transliteration_service import from_cyrillic_to_latin_az, from_latin_to_cyrillic_az
 from app.utils.custom_responses import custom_response
 
 router = APIRouter(
@@ -8,11 +8,30 @@ router = APIRouter(
     tags=["transliteration"],
 )
 
-@router.post("/")
-def transliterate(text: str):
+@router.post("/cyrillic-to-latin-az")
+def transliterate_cyrillic_to_latin_az(text: str):
     try:
         result = from_cyrillic_to_latin_az(text)
-        return custom_response(result.response_code, result.response_message, result.result_text)
+        return custom_response(result.response_code,
+                               result.response_message,
+                               {
+                                   "result_text": result.result_text,
+                                   "unrecognized_symbols": result.unrecognized_symbols
+                               })
+    except Exception as e:
+        # unexpected error
+        return custom_response(500, "Internal server error", {"error": str(e)})
+
+@router.post("/latin-to-cyrillic-az")
+def transliterate_latin_to_cyrillic_az(text: str):
+    try:
+        result = from_latin_to_cyrillic_az(text)
+        return custom_response(result.response_code,
+                               result.response_message,
+                               {
+                                   "result_text": result.result_text,
+                                   "unrecognized_symbols": result.unrecognized_symbols
+                               })
     except Exception as e:
         # unexpected error
         return custom_response(500, "Internal server error", {"error": str(e)})

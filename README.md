@@ -27,20 +27,6 @@ API available at: http://127.0.0.1:8000
 
 Swagger docs: http://127.0.0.1:8000/docs
 
-# API Endpoints
-
-POST /transliterate/cyrillic-to-latin
-
-POST /transliterate/latin-to-cyrillic
-Request body:
-
-{ "text": "Привет мир!" }
-
-
-Response includes: result_text and unrecognized_symbols.
-
-POST /auth/signup, /auth/login, /auth/logout
-
 # Future Plans
 
 More languages (beyond Azerbaijani)

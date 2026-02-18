@@ -14,4 +14,4 @@ class Transliteration(Base):
     created_at = Column(DATETIME, nullable=False)
 
     # Relationships
-    user = relationship("User", back_populates="transliterations")
+    user = relationship("User", back_populates="transliterations") # one-to-many

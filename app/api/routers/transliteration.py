@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.schemas.transliteration import TransliterationRequest
 from app.services.transliteration_service import from_cyrillic_to_latin_az, from_latin_to_cyrillic_az
 from app.utils.custom_responses import custom_response
 
@@ -9,9 +10,9 @@ router = APIRouter(
 )
 
 @router.post("/cyrillic-to-latin-az")
-def transliterate_cyrillic_to_latin_az(text: str):
+def transliterate_cyrillic_to_latin_az(request: TransliterationRequest):
     try:
-        result = from_cyrillic_to_latin_az(text)
+        result = from_cyrillic_to_latin_az(request.text)
         return custom_response(result.response_code,
                                result.response_message,
                                {
@@ -23,9 +24,9 @@ def transliterate_cyrillic_to_latin_az(text: str):
         return custom_response(500, "Internal server error", {"error": str(e)})
 
 @router.post("/latin-to-cyrillic-az")
-def transliterate_latin_to_cyrillic_az(text: str):
+def transliterate_latin_to_cyrillic_az(request: TransliterationRequest):
     try:
-        result = from_latin_to_cyrillic_az(text)
+        result = from_latin_to_cyrillic_az(request.text)
         return custom_response(result.response_code,
                                result.response_message,
                                {

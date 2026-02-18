@@ -1,5 +1,9 @@
 from pydantic import BaseModel
 
+
+class TransliterationRequest(BaseModel):
+    text: str
+
 class SuccessfulTransliteration(BaseModel):
     original_text: str
     result_text: str

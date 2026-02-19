@@ -1,14 +1,16 @@
+from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import SuccessfulTransliteration
 from app.constants.transliteration import az_cyrillic_to_latin, az_latin_to_cyrillic
+from app.core.models.transliteration_model import Transliteration
 
 
-def from_cyrillic_to_latin_az(cyrillic_text: str):
-    return _transliterate(cyrillic_text, az_cyrillic_to_latin)
+def from_cyrillic_to_latin_az(cyrillic_text: str, db: Session):
+    return _transliterate(cyrillic_text, az_cyrillic_to_latin, db)
 
-def from_latin_to_cyrillic_az(cyrillic_text: str):
-    return _transliterate(cyrillic_text, az_latin_to_cyrillic)
+def from_latin_to_cyrillic_az(cyrillic_text: str, db: Session):
+    return _transliterate(cyrillic_text, az_latin_to_cyrillic, db)
 
-def _transliterate(text: str, mapping: dict[str, str]):
+def _transliterate(text: str, mapping: dict[str, str], db: Session):
     result = []
     unrecognized = []
 
@@ -23,6 +25,18 @@ def _transliterate(text: str, mapping: dict[str, str]):
             result.append(ch)
 
     result_text = "".join(result)
+
+    transliteration = Transliteration(
+        user_id=1, # dummy data
+        source_language="az",
+        target_language="az",
+        original_text=text,
+        translated_text=result_text,
+    )
+
+    db.add(transliteration)
+    db.commit()
+    db.refresh(transliteration)
 
     return SuccessfulTransliteration(
         original_text=text,

@@ -1,6 +1,7 @@
-from fastapi import APIRouter
-
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import TransliterationRequest
+from app.core.database import get_db
 from app.services.transliteration_service import from_cyrillic_to_latin_az, from_latin_to_cyrillic_az
 from app.utils.custom_responses import custom_response
 
@@ -10,9 +11,9 @@ router = APIRouter(
 )
 
 @router.post("/cyrillic-to-latin-az")
-def transliterate_cyrillic_to_latin_az(request: TransliterationRequest):
+def transliterate_cyrillic_to_latin_az(request: TransliterationRequest, db: Session = Depends(get_db)):
     try:
-        result = from_cyrillic_to_latin_az(request.text)
+        result = from_cyrillic_to_latin_az(request.text, db)
         return custom_response(result.response_code,
                                result.response_message,
                                {
@@ -24,9 +25,9 @@ def transliterate_cyrillic_to_latin_az(request: TransliterationRequest):
         return custom_response(500, "Internal server error", {"error": str(e)})
 
 @router.post("/latin-to-cyrillic-az")
-def transliterate_latin_to_cyrillic_az(request: TransliterationRequest):
+def transliterate_latin_to_cyrillic_az(request: TransliterationRequest, db: Session = Depends(get_db)):
     try:
-        result = from_latin_to_cyrillic_az(request.text)
+        result = from_latin_to_cyrillic_az(request.text, db)
         return custom_response(result.response_code,
                                result.response_message,
                                {

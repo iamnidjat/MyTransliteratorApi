@@ -206,4 +206,6 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# Ignore specific files
 test_main.http
+/app/utils/dev_seed.py

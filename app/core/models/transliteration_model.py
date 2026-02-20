@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DATETIME, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -12,7 +12,7 @@ class Transliteration(Base):
     target_language = Column(String(10), nullable=False)
     original_text = Column(Text, nullable=False)
     translated_text = Column(Text, nullable=False)
-    created_at = Column(DATETIME, nullable=False, default=datetime.utcnow) # utc to avoid timezone issues
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow) # utc to avoid timezone issues
 
     # Relationships
     user = relationship("User", back_populates="transliterations") # one-to-many

@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
-
 from app.api.routers.transliteration import router as transliteration
+from app.exceptions.handlers import AppException
+from fastapi.responses import JSONResponse
+from app.utils.custom_response_codes import MESSAGES
 
 app = FastAPI(
     title="MyTransliterator",
@@ -17,4 +19,14 @@ app.add_middleware(
 )
 
 app.include_router(transliteration)
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    return JSONResponse(
+        status_code=exc.http_status,
+        content={
+            "code": exc.code,
+            "message": MESSAGES[exc.code],
+        },
+    )
 

@@ -25,12 +25,14 @@ class ResponseCode(IntEnum):
 
     # Not Found
     USER_NOT_FOUND = 4000
+    TRANSLITERATION_NOT_FOUND = 4001
 
     # Permission / Business Restrictions
     SERVICE_ERROR = 4100
 
     # Server Errors
     SERVER_ERROR = 5000
+
 
 MESSAGES: dict[ResponseCode, str] = {
     ResponseCode.SUCCESS:             "Success",
@@ -42,4 +44,5 @@ MESSAGES: dict[ResponseCode, str] = {
     ResponseCode.UNAUTHORIZED_OP:     "Unauthorized operation",
     ResponseCode.SERVER_ERROR:        "Server Error",
     ResponseCode.USER_NOT_FOUND:      "User not found",
+    ResponseCode.TRANSLITERATION_NOT_FOUND: "Transliteration not found",
 }

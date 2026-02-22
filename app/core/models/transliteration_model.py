@@ -13,6 +13,7 @@ class Transliteration(Base):
     original_text = Column(Text, nullable=False)
     translated_text = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow) # utc to avoid timezone issues
+    status = Column(Integer, nullable=False) # 1 -> successful, 2 -> failed
 
     # Relationships
     user = relationship("User", back_populates="transliterations") # one-to-many

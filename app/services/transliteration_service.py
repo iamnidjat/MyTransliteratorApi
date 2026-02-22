@@ -104,7 +104,6 @@ def delete_single_transliteration(user_id: int, transliteration_id: int , db: Se
 
     db.delete(t_history)
     db.commit()
-    db.refresh(t_history)
 
     return SuccessfulTransliterationRemoval(
         original_text=t_history.original_text,

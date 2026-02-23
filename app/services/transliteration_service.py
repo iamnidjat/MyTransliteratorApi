@@ -58,7 +58,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
     )
 
 def get_user_transliteration_history(user_id: int, db: Session) -> List[TransliterationHistory]:
-    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id).all()
+    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id, Transliteration.active).all()
 
     result = []
     for t_history in t_histories:
@@ -72,12 +72,12 @@ def get_user_transliteration_history(user_id: int, db: Session) -> List[Translit
 
     return result
 
-# change to soft delete
 def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTransliterationHistoryRemoval:
-    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id).all()
+    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id, Transliteration.active).all()
 
     for t_history in t_histories:
-        db.delete(t_history)
+        # db.delete(t_history)
+        t_history.active = False
 
     db.commit()
 
@@ -88,13 +88,13 @@ def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTrans
         status=1
     )
 
-# change to soft delete
 def delete_single_transliteration(user_id: int, transliteration_id: int , db: Session) -> SuccessfulTransliterationRemoval:
     t_history = (
         db.query(Transliteration)
         .filter(
             Transliteration.user_id == user_id,
-            Transliteration.id == transliteration_id
+            Transliteration.id == transliteration_id,
+            Transliteration.active
         )
         .first()
     )
@@ -102,7 +102,8 @@ def delete_single_transliteration(user_id: int, transliteration_id: int , db: Se
     if not t_history:
         raise AppException(ResponseCode.TRANSLITERATION_NOT_FOUND, http_status=404)
 
-    db.delete(t_history)
+    t_history.active = False
+    #db.delete(t_history)
     db.commit()
 
     return SuccessfulTransliterationRemoval(

@@ -12,3 +12,14 @@ class SignUp(BaseModel):
 
 class Logout(BaseModel):
     pass
+
+class AuthenticatedUser(BaseModel):
+    id: int
+    name: str
+    email: str
+
+class Authenticate(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+    user: AuthenticatedUser

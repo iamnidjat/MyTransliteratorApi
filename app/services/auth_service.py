@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from app.api.schemas.auth import Authenticate, AuthenticatedUser
 from app.auth.jwt_handler import create_access_token, create_refresh_token
 from app.core.models import User
 from passlib.context import CryptContext
@@ -25,13 +26,13 @@ def authenticate(username, password, db: Session):
     access_token = create_access_token(token_data)
     refresh_token = create_refresh_token()
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email
-        }
-    }
+    return Authenticate(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="Bearer",
+        user=AuthenticatedUser(
+            id=user.id,
+            name=user.name,
+            email=user.email
+        )
+    )

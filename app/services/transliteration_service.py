@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import SuccessfulTransliterationCreation, TransliterationHistory, \
-    SuccessfulTransliterationHistoryRemoval, SuccessfulTransliterationRemoval
+    SuccessfulTransliterationHistoryRemoval, SuccessfulTransliterationRemoval, TransliterationHistoryListResponse
 from app.constants.transliteration import az_cyrillic_to_latin_lower, az_cyrillic_to_latin_upper, \
     az_latin_to_cyrillic_lower, az_latin_to_cyrillic_upper
 from app.core.models.transliteration_model import Transliteration
@@ -39,7 +39,10 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
         source_language="az",
         target_language="az",
         original_text=text,
-        translated_text=result_text
+        translated_text=result_text,
+        created_at=datetime.utcnow(),
+        status=1,
+        active=True,
     )
 
     if flag:
@@ -57,23 +60,31 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
         status=1
     )
 
-def get_user_transliteration_history(user_id: int, db: Session) -> List[TransliterationHistory]:
-    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id, Transliteration.active).all()
+def get_user_transliteration_history(user_id: int, db: Session) -> TransliterationHistoryListResponse:
+    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id, Transliteration.active == True).all()
 
     result = []
     for t_history in t_histories:
         result.append(TransliterationHistory(
             original_text=t_history.original_text,
-            result_text=t_history.result_text,
+            result_text=t_history.translated_text,
+            source_language=t_history.source_language,
+            target_language=t_history.target_language,
             unrecognized_symbols=t_history.unrecognized_symbols,
             created_at=t_history.created_at,
-            status=t_history.status
+            status=t_history.status,
+            active=t_history.active,
+            response_code=200,
+            response_message="success",
         ))
 
-    return result
+    return TransliterationHistoryListResponse(
+            total=len(result),
+            history=result
+        )
 
 def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTransliterationHistoryRemoval:
-    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id, Transliteration.active).all()
+    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id, Transliteration.active == True).all()
 
     for t_history in t_histories:
         # db.delete(t_history)

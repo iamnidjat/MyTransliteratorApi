@@ -30,3 +30,5 @@ async def app_exception_handler(request: Request, exc: AppException):
         },
     )
 
+
+

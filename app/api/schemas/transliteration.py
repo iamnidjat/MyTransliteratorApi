@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -33,6 +35,15 @@ class SuccessfulTransliterationHistoryRemoval(BaseModel):
 class TransliterationHistory(BaseModel):
     original_text: str
     result_text: str
-    unrecognized_symbols: list[str] = []
+    source_language: str
+    target_language: str
+    unrecognized_symbols: Optional[list[str]] = []
+    response_code: int = 200
+    response_message: str = "success"
     created_at: datetime
     status: int
+    active: bool
+
+class TransliterationHistoryListResponse(BaseModel):
+    total: int
+    history: list[TransliterationHistory]

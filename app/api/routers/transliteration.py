@@ -4,6 +4,7 @@ from app.api.schemas.transliteration import TransliterationRequest, Transliterat
 from app.core.database import get_db
 from app.services.transliteration_service import from_cyrillic_to_latin_az, from_latin_to_cyrillic_az, \
 get_user_transliteration_history, delete_transliteration_history, delete_single_transliteration
+from app.utils.custom_response_codes import ResponseCode
 from app.utils.custom_responses import custom_response
 
 router = APIRouter(
@@ -15,28 +16,40 @@ router = APIRouter(
 def transliterate_cyrillic_to_latin_az(request: TransliterationRequest, db: Session = Depends(get_db)):
     try:
         result = from_cyrillic_to_latin_az(request.text, request.flag, db)
-        return custom_response(result.response_code,
-                               result.response_message,
-                               {
+        return custom_response(http_status=200,
+                               business_code=result.response_code,
+                               message=result.response_message,
+                               data={
                                    "result_text": result.result_text,
                                    "unrecognized_symbols": result.unrecognized_symbols
                                })
     except Exception as e:
         # unexpected error
-        return custom_response(500, "Internal server error", {"error": str(e)})
+        return custom_response(
+            http_status=500,
+            business_code=ResponseCode.SERVER_ERROR,
+            message="Internal server error",
+            data={"error": str(e)}
+        )
 
 @router.post("/latin-to-cyrillic-az")
 def transliterate_latin_to_cyrillic_az(request: TransliterationRequest, db: Session = Depends(get_db)):
     try:
         result = from_latin_to_cyrillic_az(request.text, request.flag, db)
-        return custom_response(result.response_code,
-                               result.response_message,
-                               {
+        return custom_response(http_status=200,
+                               business_code=result.response_code,
+                               message=result.response_message,
+                               data={
                                    "result_text": result.result_text,
                                    "unrecognized_symbols": result.unrecognized_symbols
                                })
     except Exception as e:
-        return custom_response(500, "Internal server error", {"error": str(e)})
+        return custom_response(
+            http_status=500,
+            business_code=ResponseCode.SERVER_ERROR,
+            message="Internal server error",
+            data={"error": str(e)}
+        )
 
 # @router.get("/user_transliteration_history")
 # def user_transliteration_history(user_id: int, db: Session = Depends(get_db)):
@@ -62,22 +75,29 @@ def user_transliteration_history(user_id: int, db: Session = Depends(get_db)):
 def remove_transliteration_history(user_id: int, db: Session = Depends(get_db)):
     try:
         result = delete_transliteration_history(user_id, db)
-        return custom_response(result.response_code,
-                               result.response_message,
-                               {
-                                   "done_at": result.done_at,
+        return custom_response(http_status=200,
+                               business_code=result.response_code,
+                               message=result.response_message,
+                               data={
+                                    "done_at": result.done_at,
                                     "status": result.status
                                })
     except Exception as e:
-        return custom_response(500, "Internal server error", {"error": str(e)})
+        return custom_response(
+            http_status=500,
+            business_code=ResponseCode.SERVER_ERROR,
+            message="Internal server error",
+            data={"error": str(e)}
+        )
 
 @router.delete("/{user_id}/{transliteration_id}")
 def remove_single_transliteration(user_id: int, transliteration_id: int, db: Session = Depends(get_db)):
     try:
         result = delete_single_transliteration(user_id, transliteration_id, db)
-        return custom_response(result.response_code,
-                               result.response_message,
-                               {
+        return custom_response(http_status=200,
+                               business_code=result.response_code,
+                               message=result.response_message,
+                               data={
                                     "original_text": result.original_text,
                                     "result_text": result.result_text,
                                     "unrecognized_symbols": result.unrecognized_symbols,
@@ -85,4 +105,9 @@ def remove_single_transliteration(user_id: int, transliteration_id: int, db: Ses
                                     "status": result.status,
                                })
     except Exception as e:
-        return custom_response(500, "Internal server error", {"error": str(e)})
+        return custom_response(
+            http_status=500,
+            business_code=ResponseCode.SERVER_ERROR,
+            message="Internal server error",
+            data={"error": str(e)}
+        )

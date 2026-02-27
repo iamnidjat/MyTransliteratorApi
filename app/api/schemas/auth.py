@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class Login(BaseModel):
@@ -23,3 +24,9 @@ class Authenticate(BaseModel):
     refresh_token: str
     token_type: str
     user: AuthenticatedUser
+
+class SuccessfulPwdChange(BaseModel):
+    response_code: int = 200
+    response_message: str = "success"
+    user_id: int
+    updated_at: datetime

@@ -209,3 +209,5 @@ __marimo__/
 # Ignore specific files
 test_main.http
 /app/utils/dev_seed.py
+
+/uploaded-files

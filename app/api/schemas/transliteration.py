@@ -8,6 +8,15 @@ class TransliterationRequest(BaseModel):
     text: str
     flag: bool = False # auth flag, if True -> authorized
 
+    # supports only one example
+    # class Config:
+    #     schema_extra = {
+    #         "example": {
+    #             "text": "Салам, бугун һава сон дərəcə гөзəлдир!",
+    #             "flag": True
+    #         }
+    #     }
+
 class SuccessfulTransliterationCreation(BaseModel):
     original_text: str
     result_text: str

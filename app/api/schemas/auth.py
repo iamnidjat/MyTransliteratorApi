@@ -30,3 +30,8 @@ class SuccessfulPwdChange(BaseModel):
     response_message: str = "success"
     user_id: int
     updated_at: datetime
+
+class TokenRefreshResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "Bearer"

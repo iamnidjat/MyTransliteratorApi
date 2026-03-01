@@ -23,8 +23,10 @@ class ResponseCode(IntEnum):
     INVALID_PARAMS = 2000
     INVALID_TOKEN = 2001
     INVALID_ACCOUNT = 2002
-    WRONG_PASSWORD = 2003
-    INVALID_OLD_PWD = 2004
+    INVALID_CREDENTIALS = 2003
+    WRONG_PASSWORD = 2004
+    INVALID_OLD_PWD = 2005
+    USER_ALREADY_EXISTS = 2006
 
     # Authentication / Authorization
     UNAUTHORIZED_OP = 3000
@@ -50,7 +52,9 @@ MESSAGES: dict[ResponseCode, str] = {
     ResponseCode.INVALID_PARAMS:      "Invalid request parameters",
     ResponseCode.INVALID_TOKEN:       "Invalid token",
     ResponseCode.INVALID_ACCOUNT:     "Invalid account",
+    ResponseCode.INVALID_CREDENTIALS: "Invalid credentials",
     ResponseCode.INVALID_OLD_PWD:     "Invalid old password",
+    ResponseCode.USER_ALREADY_EXISTS: "User already exists",
     ResponseCode.WRONG_PASSWORD:      "Wrong password",
     ResponseCode.SERVICE_ERROR:       "Service Error",
     ResponseCode.UNAUTHORIZED_OP:     "Unauthorized operation",

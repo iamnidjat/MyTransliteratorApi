@@ -10,7 +10,7 @@ from app.utils.custom_response_codes import ResponseCode
 from app.utils.custom_responses import custom_response
 
 router = APIRouter(
-    prefix="/transliteration",
+    prefix="/v1/transliteration",
     tags=["transliteration"],
 )
 

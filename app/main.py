@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
-from app.api.routers.transliteration import router as transliteration
+from app.api.routers.v1.transliteration import router as transliteration
+from app.api.routers.v1.auth import router as auth
 from app.exceptions.handlers import AppException
 from fastapi.responses import JSONResponse
 from app.utils.custom_response_codes import MESSAGES
@@ -18,6 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth)
 app.include_router(transliteration)
 
 @app.exception_handler(AppException)

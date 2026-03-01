@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.schemas.auth import Authenticate, AuthenticatedUser, Login, SignUp, SuccessfulPwdChange, TokenRefreshResponse
 from app.auth.jwt_handler import create_access_token, create_refresh_token, decode_token
-from app.auth.security import hash_password, verify_password
+from app.auth.security import hash_password, hash_token, verify_password
 from app.core.models import User
 from passlib.context import CryptContext
 
@@ -106,8 +106,9 @@ def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
 def save_refresh_token(user_id: int, token: str, db: Session) -> ResponseCode:
     try:
         expires_at = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        hashed_token = hash_token(token)
         refresh_token = RefreshToken(
-            token=token,
+            token=hashed_token,
             user_id=user_id,
             expires_at=expires_at
         )
@@ -125,9 +126,10 @@ def save_refresh_token(user_id: int, token: str, db: Session) -> ResponseCode:
         )
 
 def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
+    hashed_token = hash_token(refresh_token)
     try:
         token_obj = db.query(RefreshToken).filter(
-            RefreshToken.token == refresh_token,
+            RefreshToken.token == hashed_token,
             RefreshToken.expires_at > datetime.utcnow(),
             RefreshToken.is_used == False,
             RefreshToken.is_revoked == False,
@@ -145,9 +147,10 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
         user = token_obj.user
         new_access_token = create_access_token({"sub": str(user.id)})
         new_refresh_token = create_refresh_token()
+        new_hashed_token = hash_token(new_refresh_token)
 
         new_refresh_token_obj = RefreshToken(
-            token=new_refresh_token,
+            token=new_hashed_token,
             user_id=user.id,
             expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
         )

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, File, Form, Path, Query, UploadFile
 from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import TransliterationRequest, TransliterationHistoryListResponse
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, get_optional_current_user
 from app.core.database import get_db
 from app.core.models.user_model import User
 from app.services.transliteration_service import from_cyrillic_to_latin_az, from_latin_to_cyrillic_az, \
@@ -22,22 +22,20 @@ def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
                 "summary": "Non authorized user's text",
                 "description": "Transliteration when user is not logged in",
                 "value": {
-                    "text": "Салам, бугун һава сон дərəcə гөзəлдир!",
-                    "flag": False
+                    "text": "Салам, бугун һава сон дərəcə гөзəлдир!"
                 }
             },
             "authorized_case": {
                 "summary": "Authorized user's text",
                 "description": "Transliteration when user logged in",
                 "value": {
-                    "text": "Салам, бугун һава сон дərəcə гөзəлдир!",
-                    "flag": True
+                    "text": "Салам, бугун һава сон дərəcə гөзəлдир!"
                 }
             }
         }
-    ), db: Session = Depends(get_db)):
+    ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
     try:
-        result = from_cyrillic_to_latin_az(request.text, request.flag, db)
+        result = from_cyrillic_to_latin_az(request.text, current_user, db)
         return custom_response(http_status=200,
                                business_code=result.response_code,
                                message=result.response_message,
@@ -62,22 +60,20 @@ def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
                 "summary": "Non authorized user's text",
                 "description": "Transliteration when user is not logged in",
                 "value": {
-                    "text": "Salam, bugün hava son dərəcə gözəldir!",
-                    "flag": False
+                    "text": "Salam, bugün hava son dərəcə gözəldir!"
                 }
             },
             "authorized_case": {
                 "summary": "Authorized user's text",
                 "description": "Transliteration when user logged in",
                 "value": {
-                    "text": "Salam, bugün hava son dərəcə gözəldir!",
-                    "flag": True
+                    "text": "Salam, bugün hava son dərəcə gözəldir!"
                 }
             }
         }
-    ), db: Session = Depends(get_db)):
+    ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
     try:
-        result = from_latin_to_cyrillic_az(request.text, request.flag, db)
+        result = from_latin_to_cyrillic_az(request.text, current_user, db)
         return custom_response(http_status=200,
                                business_code=result.response_code,
                                message=result.response_message,
@@ -94,16 +90,16 @@ def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
         )
 
 @router.post("/cyrillic-to-latin-az/file")
-async def transliterate_cyrillic_file(
+async def transliterate_cyrillic_to_latin_az_file(
     file: UploadFile = File(..., description="Upload a .txt file"),
-    flag: bool = Form(..., description="True -> user authorized, otherwise False", example=True),
+    current_user: User | None = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ):
     try:
         content = await file.read()
         text = content.decode("utf-8")
 
-        result = from_cyrillic_to_latin_az(text, flag, db)
+        result = from_cyrillic_to_latin_az(text, current_user, db)
         return custom_response(http_status=200,
                                business_code=result.response_code,
                                message=result.response_message,
@@ -120,16 +116,16 @@ async def transliterate_cyrillic_file(
         )
 
 @router.post("/latin-to-cyrillic-az/file")
-async def transliterate_cyrillic_file(
+async def transliterate_latin_to_cyrillic_az_file(
     file: UploadFile = File(..., description="Upload a .txt file"),
-    flag: bool = Form(..., description="True -> user authorized, otherwise False", example=True),
+    current_user: User | None = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ):
     try:
         content = await file.read()
         text = content.decode("utf-8")
 
-        result = from_latin_to_cyrillic_az(text, flag, db)
+        result = from_latin_to_cyrillic_az(text, current_user, db)
         return custom_response(http_status=200,
                                business_code=result.response_code,
                                message=result.response_message,

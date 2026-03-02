@@ -6,17 +6,18 @@ from app.api.schemas.transliteration import SuccessfulTransliterationCreation, T
 from app.constants.transliteration import az_cyrillic_to_latin_lower, az_cyrillic_to_latin_upper, \
     az_latin_to_cyrillic_lower, az_latin_to_cyrillic_upper
 from app.core.models.transliteration_model import Transliteration
+from app.core.models.user_model import User
 from app.exceptions.handlers import AppException
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
 
 
-def from_cyrillic_to_latin_az(cyrillic_text: str, flag: bool, db: Session) -> SuccessfulTransliterationCreation:
-    return _transliterate(cyrillic_text, az_cyrillic_to_latin_lower, az_cyrillic_to_latin_upper, flag, db)
+def from_cyrillic_to_latin_az(cyrillic_text: str, current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
+    return _transliterate(cyrillic_text, az_cyrillic_to_latin_lower, az_cyrillic_to_latin_upper, current_user, db)
 
-def from_latin_to_cyrillic_az(cyrillic_text: str, flag: bool, db: Session) -> SuccessfulTransliterationCreation:
-    return _transliterate(cyrillic_text, az_latin_to_cyrillic_lower, az_latin_to_cyrillic_upper, flag, db)
+def from_latin_to_cyrillic_az(cyrillic_text: str, current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
+    return _transliterate(cyrillic_text, az_latin_to_cyrillic_lower, az_latin_to_cyrillic_upper, current_user, db)
 
-def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict[str, str], flag: bool, db: Session) -> SuccessfulTransliterationCreation:
+def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict[str, str], current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
     result = []
     unrecognized = []
 
@@ -34,18 +35,18 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
 
     result_text = "".join(result)
 
-    transliteration = Transliteration(
-        user_id=1, # dummy data
-        source_language="az",
-        target_language="az",
-        original_text=text,
-        translated_text=result_text,
-        created_at=datetime.utcnow(),
-        status=1,
-        active=True,
-    )
-
-    if flag:
+    if current_user:
+        transliteration = Transliteration(
+            user_id=current_user.id,
+            source_language="az",
+            target_language="az",
+            original_text=text,
+            translated_text=result_text,
+            created_at=datetime.utcnow(),
+            status=1,
+            active=True,
+        )
+        
         db.add(transliteration)
         db.commit()
         db.refresh(transliteration)

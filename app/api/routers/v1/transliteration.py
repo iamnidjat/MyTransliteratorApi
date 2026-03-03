@@ -4,9 +4,10 @@ from app.api.schemas.transliteration import TransliterationRequest, Transliterat
 from app.auth.dependencies import get_current_user, get_optional_current_user
 from app.core.database import get_db
 from app.core.models.user_model import User
+from app.exceptions.handlers import AppException
 from app.services.transliteration_service import from_cyrillic_to_latin_az, from_latin_to_cyrillic_az, \
 get_user_transliteration_history, delete_transliteration_history, delete_single_transliteration
-from app.utils.custom_response_codes import ResponseCode
+from app.utils.custom_response_codes import MESSAGES, ResponseCode
 from app.utils.custom_responses import custom_response
 
 router = APIRouter(
@@ -43,12 +44,19 @@ def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
                                    "result_text": result.result_text,
                                    "unrecognized_symbols": result.unrecognized_symbols
                                })
+    except AppException as e:
+        return custom_response(
+            http_status=e.http_status,
+            business_code=e.business_code,
+            message=str(e),
+            data=None
+        )
     except Exception as e:
         # unexpected error
         return custom_response(
             http_status=500,
             business_code=ResponseCode.SERVER_ERROR,
-            message="Internal server error",
+            message=MESSAGES[ResponseCode.SERVER_ERROR],
             data={"error": str(e)}
         )
 
@@ -81,11 +89,18 @@ def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
                                    "result_text": result.result_text,
                                    "unrecognized_symbols": result.unrecognized_symbols
                                })
+    except AppException as e:
+        return custom_response(
+            http_status=e.http_status,
+            business_code=e.business_code,
+            message=str(e),
+            data=None
+        )
     except Exception as e:
         return custom_response(
             http_status=500,
             business_code=ResponseCode.SERVER_ERROR,
-            message="Internal server error",
+            message=MESSAGES[ResponseCode.SERVER_ERROR],
             data={"error": str(e)}
         )
 
@@ -107,11 +122,18 @@ async def transliterate_cyrillic_to_latin_az_file(
                                    "result_text": result.result_text,
                                    "unrecognized_symbols": result.unrecognized_symbols
                                })
+    except AppException as e:
+        return custom_response(
+            http_status=e.http_status,
+            business_code=e.business_code,
+            message=str(e),
+            data=None
+        )
     except Exception as e:
         return custom_response(
             http_status=500,
             business_code=ResponseCode.SERVER_ERROR,
-            message="Internal server error",
+            message=MESSAGES[ResponseCode.SERVER_ERROR],
             data={"error": str(e)}
         )
 
@@ -133,11 +155,18 @@ async def transliterate_latin_to_cyrillic_az_file(
                                    "result_text": result.result_text,
                                    "unrecognized_symbols": result.unrecognized_symbols
                                })
+    except AppException as e:
+        return custom_response(
+            http_status=e.http_status,
+            business_code=e.business_code,
+            message=str(e),
+            data=None
+        )
     except Exception as e:
         return custom_response(
             http_status=500,
             business_code=ResponseCode.SERVER_ERROR,
-            message="Internal server error",
+            message=MESSAGES[ResponseCode.SERVER_ERROR],
             data={"error": str(e)}
         )
 
@@ -172,11 +201,18 @@ def remove_transliteration_history(current_user: User = Depends(get_current_user
                                     "done_at": result.done_at,
                                     "status": result.status
                                })
+    except AppException as e:
+        return custom_response(
+            http_status=e.http_status,
+            business_code=e.business_code,
+            message=str(e),
+            data=None
+        )
     except Exception as e:
         return custom_response(
             http_status=500,
             business_code=ResponseCode.SERVER_ERROR,
-            message="Internal server error",
+            message=MESSAGES[ResponseCode.SERVER_ERROR],
             data={"error": str(e)}
         )
 
@@ -196,10 +232,17 @@ def remove_single_transliteration(transliteration_id: int = Path(..., descriptio
                                     "created_at": result.created_at,
                                     "status": result.status,
                                })
+    except AppException as e:
+        return custom_response(
+            http_status=e.http_status,
+            business_code=e.business_code,
+            message=str(e),
+            data=None
+        )
     except Exception as e:
         return custom_response(
             http_status=500,
             business_code=ResponseCode.SERVER_ERROR,
-            message="Internal server error",
+            message=MESSAGES[ResponseCode.SERVER_ERROR],
             data={"error": str(e)}
         )

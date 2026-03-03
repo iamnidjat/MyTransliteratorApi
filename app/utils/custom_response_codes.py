@@ -18,6 +18,9 @@ class ResponseCode(IntEnum):
     SUCCESSFUL_TRANSLITERATIONS_REMOVAL = 1102
     SUCCESSFUL_TRANSLITERATIONS_READING = 1103
     SUCCESSFUL_PWD_CHANGE = 1900
+    LOGIN_SUCCESSFUL = 1910
+    SIGNUP_SUCCESSFUL = 1911
+    LOGOUT_SUCCESSFUL = 1912
 
     # Validation / Client Errors
     INVALID_PARAMS = 2000
@@ -30,6 +33,7 @@ class ResponseCode(IntEnum):
 
     # Authentication / Authorization
     UNAUTHORIZED_OP = 3000
+    LOGOUT_FAILED = 3100
 
     # Not Found
     USER_NOT_FOUND = 4000
@@ -49,6 +53,9 @@ MESSAGES: dict[ResponseCode, str] = {
     ResponseCode.SUCCESSFUL_TRANSLITERATION_REMOVAL: "Successful transliteration removal",
     ResponseCode.SUCCESSFUL_TRANSLITERATIONS_REMOVAL: "Successful transliterations removal",
     ResponseCode.SUCCESSFUL_TRANSLITERATIONS_READING: "Successful transliteration reading",
+    ResponseCode.LOGIN_SUCCESSFUL:   "Login successful",
+    ResponseCode.SIGNUP_SUCCESSFUL:   "Signup successful",
+    ResponseCode.LOGOUT_SUCCESSFUL:   "Logout successful",
     ResponseCode.INVALID_PARAMS:      "Invalid request parameters",
     ResponseCode.INVALID_TOKEN:       "Invalid token",
     ResponseCode.INVALID_ACCOUNT:     "Invalid account",
@@ -58,7 +65,8 @@ MESSAGES: dict[ResponseCode, str] = {
     ResponseCode.WRONG_PASSWORD:      "Wrong password",
     ResponseCode.SERVICE_ERROR:       "Service Error",
     ResponseCode.UNAUTHORIZED_OP:     "Unauthorized operation",
-    ResponseCode.SERVER_ERROR:        "Server Error",
+    ResponseCode.SERVER_ERROR:        "Internal server Error",
+    ResponseCode.LOGOUT_FAILED:       "Logout failed",  
     ResponseCode.USER_NOT_FOUND:      "User not found",
     ResponseCode.TRANSLITERATION_NOT_FOUND: "Transliteration not found",
 }

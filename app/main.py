@@ -24,11 +24,13 @@ app.include_router(transliteration)
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
+    message = MESSAGES.get(exc.business_code, "Unknown error")
+
     return JSONResponse(
         status_code=exc.http_status,
         content={
-            "code": exc.code,
-            "message": MESSAGES[exc.code],
+            "code": exc.business_code,
+            "message": message,
         },
     )
 

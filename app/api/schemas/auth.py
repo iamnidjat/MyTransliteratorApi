@@ -1,10 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 
 class Login(BaseModel):
-    username: str
-    password: str
+    username: str = Field(
+        ...,
+        description="Enter your username",
+        example="john_doe"
+    )
+    password: str = Field(
+        ...,
+        description="Enter your password",
+        example="strongpassword123"
+    )
 
 class SignUp(BaseModel):
     username: str
@@ -25,11 +33,20 @@ class Authenticate(BaseModel):
     token_type: str
     user: AuthenticatedUser
 
+class SuccessfulAuthentication(BaseModel):
+    business_code: str
+    data: Authenticate
+
 class SuccessfulPwdChange(BaseModel):
     response_code: int = 200
     response_message: str = "success"
     user_id: int
     updated_at: datetime
+
+class ChangePassword(BaseModel):
+    email: str
+    pwd: str
+    new_pwd: str
 
 class TokenRefreshResponse(BaseModel):
     access_token: str

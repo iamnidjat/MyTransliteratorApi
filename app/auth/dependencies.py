@@ -8,9 +8,9 @@ from app.auth.jwt_handler import decode_token
 from app.core.database import get_db
 from app.core.models import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 oauth2_scheme_optional = OAuth2PasswordBearer(
-    tokenUrl="auth/token",
+    tokenUrl="auth/login",
     auto_error=False
 )
 

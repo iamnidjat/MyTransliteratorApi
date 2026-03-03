@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.schemas.auth import Authenticate, AuthenticatedUser, Login, SignUp, SuccessfulPwdChange, TokenRefreshResponse
+from app.api.schemas.auth import Authenticate, AuthenticatedUser, ChangePassword, Login, SignUp, SuccessfulAuthentication, SuccessfulPwdChange, TokenRefreshResponse
 from app.auth.jwt_handler import create_access_token, create_refresh_token, decode_token
 from app.auth.security import hash_password, hash_token, verify_password
 from app.core.models import User
@@ -23,7 +23,7 @@ pwd_context = CryptContext(
 load_dotenv()
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 
-def authenticate(loginCredentials: Login,  db: Session) -> Authenticate:
+def authenticate(loginCredentials: Login,  db: Session) -> SuccessfulAuthentication:
     user = db.query(User).filter(User.name == loginCredentials.username).first()
 
     if not user:
@@ -37,9 +37,12 @@ def authenticate(loginCredentials: Login,  db: Session) -> Authenticate:
     auth = generate_auth_response(user)
     save_refresh_token(user.id, auth.refresh_token, db)
 
-    return auth
+    return SuccessfulAuthentication(
+        business_code=ResponseCode.SUCCESS,
+        data=auth
+    )
 
-def signup(signUpCredentials: SignUp, db: Session) -> Authenticate:
+def signup(signUpCredentials: SignUp, db: Session) -> SuccessfulAuthentication:
     existing_user  = db.query(User).filter(User.name == signUpCredentials.username).first()
 
     if existing_user :
@@ -58,8 +61,10 @@ def signup(signUpCredentials: SignUp, db: Session) -> Authenticate:
     auth = generate_auth_response(new_user)
     save_refresh_token(new_user.id, auth.refresh_token, db)
 
-    return auth
-
+    return SuccessfulAuthentication(
+        business_code=ResponseCode.SUCCESS,
+        data=auth
+    )
 
 def generate_auth_response(user: User) -> Authenticate:
     token_data = {"sub": str(user.id)}
@@ -171,16 +176,16 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
             http_status=500
         )
 
-def change_password(email: str, pwd: str, new_pwd: str, db: Session) -> SuccessfulPwdChange:
-    user = db.query(User).filter(User.email == email).first()
+def change_password(changePwd: ChangePassword, db: Session) -> SuccessfulPwdChange:
+    user = db.query(User).filter(User.email == changePwd.email).first()
 
     if not user:
         raise AppException(ResponseCode.INVALID_ACCOUNT, http_status=404)
 
-    if not verify_password(pwd, user.hashed_password):
+    if not verify_password(changePwd.pwd, user.hashed_password):
         raise AppException(ResponseCode.INVALID_OLD_PWD, http_status=401)
 
-    user.hashed_password = hash_password(new_pwd)
+    user.hashed_password = hash_password(changePwd.new_pwd)
     db.commit()
     db.refresh(user)
 

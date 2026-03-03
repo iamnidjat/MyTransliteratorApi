@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Body, Depends, File, Form, Path, Query, UploadFile
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import TransliterationRequest, TransliterationHistoryListResponse
 from app.auth.dependencies import get_current_user, get_optional_current_user
@@ -34,7 +35,7 @@ def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
                 }
             }
         }
-    ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
+    ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     try:
         result = from_cyrillic_to_latin_az(request.text, current_user, db)
         return custom_response(http_status=200,
@@ -79,7 +80,7 @@ def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
                 }
             }
         }
-    ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
+    ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     try:
         result = from_latin_to_cyrillic_az(request.text, current_user, db)
         return custom_response(http_status=200,
@@ -109,7 +110,7 @@ async def transliterate_cyrillic_to_latin_az_file(
     file: UploadFile = File(..., description="Upload a .txt file"),
     current_user: User | None = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
-):
+) -> JSONResponse:
     try:
         content = await file.read()
         text = content.decode("utf-8")
@@ -142,7 +143,7 @@ async def transliterate_latin_to_cyrillic_az_file(
     file: UploadFile = File(..., description="Upload a .txt file"),
     current_user: User | None = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
-):
+) -> JSONResponse:
     try:
         content = await file.read()
         text = content.decode("utf-8")
@@ -187,11 +188,11 @@ async def transliterate_latin_to_cyrillic_az_file(
     "/users/me/history",
     response_model=TransliterationHistoryListResponse
 )
-def user_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def user_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> TransliterationHistoryListResponse:
     return get_user_transliteration_history(current_user.id, db)
 
 @router.delete("/me/all")
-def remove_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def remove_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     try:
         result = delete_transliteration_history(current_user.id, db)
         return custom_response(http_status=200,
@@ -219,7 +220,7 @@ def remove_transliteration_history(current_user: User = Depends(get_current_user
 @router.delete("/me/{transliteration_id}")
 def remove_single_transliteration(transliteration_id: int = Path(..., description="transliteration id", example=1), 
                                 current_user: User = Depends(get_current_user),                                 
-                                db: Session = Depends(get_db)):
+                                db: Session = Depends(get_db)) -> JSONResponse:
     try:
         result = delete_single_transliteration(current_user.id, transliteration_id, db)
         return custom_response(http_status=200,

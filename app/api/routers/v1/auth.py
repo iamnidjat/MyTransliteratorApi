@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Response
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.api.schemas.auth import ChangePassword, Login, Logout, SignUp
+from app.api.utils import set_auth_cookie
 from app.auth.dependencies import get_current_user
 from app.core.database import get_db
 from app.core.models.user_model import User
@@ -16,13 +18,13 @@ router = APIRouter(
 
 
 @router.post("/login")
-def login(request: Login, db: Session = Depends(get_db)):
+def login(request: Login, response: Response, db: Session = Depends(get_db)) -> JSONResponse:
     try:
         result = authenticate(request, db)
 
         auth_data = result.data
 
-        return custom_response(
+        response = custom_response(
             http_status=200,
             business_code=ResponseCode.LOGIN_SUCCESSFUL,
             message=MESSAGES[ResponseCode.LOGIN_SUCCESSFUL],
@@ -31,6 +33,11 @@ def login(request: Login, db: Session = Depends(get_db)):
                 "token_type": auth_data.token_type,
             }
         )
+
+        # sets refresh token in cookie
+        set_auth_cookie(response, auth_data.refresh_token)
+
+        return response
     except AppException as e:
         return custom_response(
             http_status=e.http_status,
@@ -48,21 +55,25 @@ def login(request: Login, db: Session = Depends(get_db)):
         )
 
 @router.post("/signup")
-def register(request: SignUp, db: Session = Depends(get_db)):
+def register(request: SignUp, response: Response, db: Session = Depends(get_db)) -> JSONResponse:
     try:
         result = signup(request, db)
 
         auth_data = result.data
 
-        return custom_response(
-            http_status=201,
-            business_code=ResponseCode.SIGNUP_SUCCESSFUL,
-            message=MESSAGES[ResponseCode.SIGNUP_SUCCESSFUL],
+        response = custom_response(
+            http_status=200,
+            business_code=ResponseCode.LOGIN_SUCCESSFUL,
+            message=MESSAGES[ResponseCode.LOGIN_SUCCESSFUL],
             data={
                 "access_token": auth_data.access_token,
                 "token_type": auth_data.token_type,
             }
         )
+
+        set_auth_cookie(response, auth_data.refresh_token)
+
+        return response
     except AppException as e:
         return custom_response(
             http_status=e.http_status,
@@ -80,7 +91,7 @@ def register(request: SignUp, db: Session = Depends(get_db)):
         )
     
 @router.post("/logout")
-def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     try:
         revoke_user_tokens(current_user.id, db)
 
@@ -106,7 +117,7 @@ def logout(current_user: User = Depends(get_current_user), db: Session = Depends
         )
 
 # @router.post("/refresh")
-# def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+# def refresh_token(refresh_token: str, db: Session = Depends(get_db)) -> JSONResponse:
 #     try:
 #         code = refresh(refresh_token, db)
 #     except Exception as e:
@@ -120,7 +131,7 @@ def logout(current_user: User = Depends(get_current_user), db: Session = Depends
 
 
 # @router.post("/changepwd")
-# def change_user_password(changePwd: ChangePassword, db: Session = Depends(get_db)):
+# def change_user_password(changePwd: ChangePassword, db: Session = Depends(get_db)) -> JSONResponse:
 #     try:
 #         code = change_password(changePwd, db)
 #     except Exception as e:

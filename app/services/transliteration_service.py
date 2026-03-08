@@ -9,6 +9,7 @@ from app.core.models.transliteration_model import Transliteration
 from app.core.models.user_model import User
 from app.exceptions.handlers import AppException
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
+from app.repositories.transliteration_repository import create, save, get_active_by_user, get_by_user_and_id, soft_delete
 
 
 def from_cyrillic_to_latin_az(cyrillic_text: str, current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
@@ -30,6 +31,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
             else:
                 result.append('?') # adding ? to specify that the symbol is unrecognized
                 unrecognized.append(ch)
+                # result.append(ch) approach 2
         else:
             result.append(ch)
 
@@ -47,9 +49,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
             active=True,
         )
         
-        db.add(transliteration)
-        db.commit()
-        db.refresh(transliteration)
+        create(transliteration, db)
 
     return SuccessfulTransliterationCreation(
         original_text=text,
@@ -62,7 +62,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
     )
 
 def get_user_transliteration_history(user_id: int, db: Session) -> TransliterationHistoryListResponse:
-    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id, Transliteration.active == True).all()
+    t_histories = get_active_by_user(user_id, db)
 
     result = []
     for t_history in t_histories:
@@ -85,13 +85,12 @@ def get_user_transliteration_history(user_id: int, db: Session) -> Transliterati
         )
 
 def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTransliterationHistoryRemoval:
-    t_histories = db.query(Transliteration).filter(Transliteration.user_id == user_id, Transliteration.active == True).all()
+    t_histories = get_active_by_user(user_id, db)
 
     for t_history in t_histories:
-        # db.delete(t_history)
-        t_history.active = False
+        soft_delete(t_history)
 
-    db.commit()
+    save(db)
 
     return SuccessfulTransliterationHistoryRemoval(
         response_code=ResponseCode.SUCCESSFUL_TRANSLITERATIONS_REMOVAL,
@@ -101,23 +100,14 @@ def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTrans
     )
 
 def delete_single_transliteration(user_id: int, transliteration_id: int , db: Session) -> SuccessfulTransliterationRemoval:
-    t_history = (
-        db.query(Transliteration)
-        .filter(
-            Transliteration.user_id == user_id,
-            Transliteration.id == transliteration_id,
-            Transliteration.active
-        )
-        .first()
-    )
+    t_history = get_by_user_and_id(user_id, transliteration_id, db)
 
     if not t_history:
         raise AppException(ResponseCode.TRANSLITERATION_NOT_FOUND, http_status=404)
 
-    t_history.active = False
-    #db.delete(t_history)
-    db.commit()
-
+    soft_delete(t_history)
+    save(db)
+    
     return SuccessfulTransliterationRemoval(
         original_text=t_history.original_text,
         result_text=t_history.result_text,

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, File, Form, Path, Query, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Path, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import TransliterationRequest, TransliterationHistoryListResponse
@@ -16,7 +16,7 @@ router = APIRouter(
     tags=["transliteration"],
 )
 
-@router.post("/cyrillic-to-latin-az")
+@router.post("/az/cyrillic-to-latin")
 def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
         ...,
         examples={
@@ -36,32 +36,16 @@ def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
             }
         }
     ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)) -> JSONResponse:
-    try:
-        result = from_cyrillic_to_latin_az(request.text, current_user, db)
-        return custom_response(http_status=200,
-                               business_code=result.response_code,
-                               message=result.response_message,
-                               data={
-                                   "result_text": result.result_text,
-                                   "unrecognized_symbols": result.unrecognized_symbols
-                               })
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.business_code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        # unexpected error
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    result = from_cyrillic_to_latin_az(request.text, current_user, db)
+    return custom_response(http_status=200,
+                        business_code=result.response_code,
+                        message=result.response_message,
+                        data={
+                            "result_text": result.result_text,
+                            "unrecognized_symbols": result.unrecognized_symbols
+                        })
 
-@router.post("/latin-to-cyrillic-az")
+@router.post("/az/latin-to-cyrillic")
 def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
         ...,
         examples={
@@ -81,95 +65,52 @@ def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
             }
         }
     ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)) -> JSONResponse:
-    try:
-        result = from_latin_to_cyrillic_az(request.text, current_user, db)
-        return custom_response(http_status=200,
-                               business_code=result.response_code,
-                               message=result.response_message,
-                               data={
-                                   "result_text": result.result_text,
-                                   "unrecognized_symbols": result.unrecognized_symbols
-                               })
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.business_code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    result = from_latin_to_cyrillic_az(request.text, current_user, db)
+    return custom_response(http_status=200,
+                        business_code=result.response_code,
+                        message=result.response_message,
+                        data={
+                            "result_text": result.result_text,
+                            "unrecognized_symbols": result.unrecognized_symbols
+                        })
 
-@router.post("/cyrillic-to-latin-az/file")
+
+@router.post("/az/cyrillic-to-latin/file")
 async def transliterate_cyrillic_to_latin_az_file(
     file: UploadFile = File(..., description="Upload a .txt file"),
     current_user: User | None = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ) -> JSONResponse:
-    try:
-        content = await file.read()
-        text = content.decode("utf-8")
+    content = await file.read()
+    text = content.decode("utf-8")
 
-        result = from_cyrillic_to_latin_az(text, current_user, db)
-        return custom_response(http_status=200,
-                               business_code=result.response_code,
-                               message=result.response_message,
-                               data={
-                                   "result_text": result.result_text,
-                                   "unrecognized_symbols": result.unrecognized_symbols
-                               })
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.business_code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    result = from_cyrillic_to_latin_az(text, current_user, db)
+    return custom_response(http_status=200,
+                            business_code=result.response_code,
+                            message=result.response_message,
+                            data={
+                                "result_text": result.result_text,
+                                "unrecognized_symbols": result.unrecognized_symbols
+                            })
 
-@router.post("/latin-to-cyrillic-az/file")
+@router.post("/az/latin-to-cyrillic/file")
 async def transliterate_latin_to_cyrillic_az_file(
     file: UploadFile = File(..., description="Upload a .txt file"),
     current_user: User | None = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ) -> JSONResponse:
-    try:
-        content = await file.read()
-        text = content.decode("utf-8")
+    content = await file.read()
+    text = content.decode("utf-8")
 
-        result = from_latin_to_cyrillic_az(text, current_user, db)
-        return custom_response(http_status=200,
-                               business_code=result.response_code,
-                               message=result.response_message,
-                               data={
-                                   "result_text": result.result_text,
-                                   "unrecognized_symbols": result.unrecognized_symbols
-                               })
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.business_code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    result = from_latin_to_cyrillic_az(text, current_user, db)
+    return custom_response(http_status=200,
+                            business_code=result.response_code,
+                            message=result.response_message,
+                            data={
+                                "result_text": result.result_text,
+                                "unrecognized_symbols": result.unrecognized_symbols
+                            })
+
 
 # @router.get("/user_transliteration_history")
 # def user_transliteration_history(user_id: int, db: Session = Depends(get_db)):
@@ -185,7 +126,7 @@ async def transliterate_latin_to_cyrillic_az_file(
 #     except Exception as e:
 #         return custom_response(500, "Internal server error", {"error": str(e)})
 @router.get(
-    "/users/me/history",
+    "/me/history",
     response_model=TransliterationHistoryListResponse
 )
 def user_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> TransliterationHistoryListResponse:
@@ -193,57 +134,28 @@ def user_transliteration_history(current_user: User = Depends(get_current_user),
 
 @router.delete("/me/all")
 def remove_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
-    try:
-        result = delete_transliteration_history(current_user.id, db)
-        return custom_response(http_status=200,
-                               business_code=result.response_code,
-                               message=result.response_message,
-                               data={
-                                    "done_at": result.done_at,
-                                    "status": result.status
-                               })
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.business_code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    result = delete_transliteration_history(current_user.id, db)
+    return custom_response(http_status=200,
+                            business_code=result.response_code,
+                            message=result.response_message,
+                            data={
+                                "done_at": result.done_at,
+                                "status": result.status
+                            })
+
 
 @router.delete("/me/{transliteration_id}")
 def remove_single_transliteration(transliteration_id: int = Path(..., description="transliteration id", example=1), 
                                 current_user: User = Depends(get_current_user),                                 
                                 db: Session = Depends(get_db)) -> JSONResponse:
-    try:
-        result = delete_single_transliteration(current_user.id, transliteration_id, db)
-        return custom_response(http_status=200,
-                               business_code=result.response_code,
-                               message=result.response_message,
-                               data={
-                                    "original_text": result.original_text,
-                                    "result_text": result.result_text,
-                                    "unrecognized_symbols": result.unrecognized_symbols,
-                                    "created_at": result.created_at,
-                                    "status": result.status,
-                               })
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.business_code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    result = delete_single_transliteration(current_user.id, transliteration_id, db)
+    return custom_response(http_status=200,
+                            business_code=result.response_code,
+                            message=result.response_message,
+                            data={
+                                "original_text": result.original_text,
+                                "result_text": result.result_text,
+                                "unrecognized_symbols": result.unrecognized_symbols,
+                                "created_at": result.created_at,
+                                "status": result.status,
+                            })

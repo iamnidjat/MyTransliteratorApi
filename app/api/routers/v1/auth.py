@@ -19,102 +19,56 @@ router = APIRouter(
 
 @router.post("/login")
 def login(request: Login, response: Response, db: Session = Depends(get_db)) -> JSONResponse:
-    try:
-        result = authenticate(request, db)
+    result = authenticate(request, db)
 
-        auth_data = result.data
+    auth_data = result.data
 
-        response = custom_response(
-            http_status=200,
-            business_code=ResponseCode.LOGIN_SUCCESSFUL,
-            message=MESSAGES[ResponseCode.LOGIN_SUCCESSFUL],
-            data={
-                "access_token": auth_data.access_token,
-                "token_type": auth_data.token_type,
-            }
-        )
+    response = custom_response(
+        http_status=200,
+        business_code=ResponseCode.LOGIN_SUCCESSFUL,
+        message=MESSAGES[ResponseCode.LOGIN_SUCCESSFUL],
+        data={
+            "access_token": auth_data.access_token,
+            "token_type": auth_data.token_type,
+        }
+    )
 
-        # sets refresh token in cookie
-        set_auth_cookie(response, auth_data.refresh_token)
+    # sets refresh token in cookie
+    set_auth_cookie(response, auth_data.refresh_token)
 
-        return response
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.business_code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        # unexpected error
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    return response
 
 @router.post("/signup")
 def register(request: SignUp, response: Response, db: Session = Depends(get_db)) -> JSONResponse:
-    try:
-        result = signup(request, db)
+    result = signup(request, db)
 
-        auth_data = result.data
+    auth_data = result.data
 
-        response = custom_response(
-            http_status=200,
-            business_code=ResponseCode.LOGIN_SUCCESSFUL,
-            message=MESSAGES[ResponseCode.LOGIN_SUCCESSFUL],
-            data={
-                "access_token": auth_data.access_token,
-                "token_type": auth_data.token_type,
-            }
-        )
+    response = custom_response(
+        http_status=200,
+        business_code=ResponseCode.LOGIN_SUCCESSFUL,
+        message=MESSAGES[ResponseCode.LOGIN_SUCCESSFUL],
+        data={
+            "access_token": auth_data.access_token,
+            "token_type": auth_data.token_type,
+        }
+    )
 
-        set_auth_cookie(response, auth_data.refresh_token)
+    set_auth_cookie(response, auth_data.refresh_token)
 
-        return response
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.business_code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        # unexpected error
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    return response
     
 @router.post("/logout")
 def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
-    try:
-        revoke_user_tokens(current_user.id, db)
+    revoke_user_tokens(current_user.id, db)
 
-        return custom_response(
-            http_status=200,
-            business_code=ResponseCode.LOGOUT_SUCCESSFUL,
-            message=MESSAGES[ResponseCode.LOGOUT_SUCCESSFUL],
-            data=None
-        )
-    except AppException as e:
-        return custom_response(
-            http_status=e.http_status,
-            business_code=e.code,
-            message=str(e),
-            data=None
-        )
-    except Exception as e:
-        return custom_response(
-            http_status=500,
-            business_code=ResponseCode.SERVER_ERROR,
-            message=MESSAGES[ResponseCode.SERVER_ERROR],
-            data={"error": str(e)}
-        )
+    return custom_response(
+        http_status=200,
+        business_code=ResponseCode.LOGOUT_SUCCESSFUL,
+        message=MESSAGES[ResponseCode.LOGOUT_SUCCESSFUL],
+        data=None
+    )
+
 
 # @router.post("/refresh")
 # def refresh_token(refresh_token: str, db: Session = Depends(get_db)) -> JSONResponse:

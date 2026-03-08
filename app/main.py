@@ -4,13 +4,15 @@ from app.api.routers.v1.transliteration import router as transliteration
 from app.api.routers.v1.auth import router as auth
 from app.exceptions.handlers import AppException
 from fastapi.responses import JSONResponse
-from app.utils.custom_response_codes import MESSAGES
+from app.middlewares.logger_middleware import LoggingMiddleware
+from app.utils.custom_response_codes import MESSAGES, ResponseCode
 
 app = FastAPI(
     title="MyTransliterator",
     version="0.1.0",
 )
 
+app.add_middleware(LoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],
@@ -34,5 +36,15 @@ async def app_exception_handler(request: Request, exc: AppException):
         },
     )
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "business_code": ResponseCode.SERVER_ERROR,
+            "message": MESSAGES[ResponseCode.SERVER_ERROR],
+            "data": None
+        },
+    )
 
 

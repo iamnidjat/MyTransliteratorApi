@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, Response
+from fastapi import APIRouter, Body, Depends, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.api.schemas.auth import ChangePassword, Login, Logout, SignUp
@@ -70,18 +70,29 @@ def logout(current_user: User = Depends(get_current_user), db: Session = Depends
     )
 
 
-# @router.post("/refresh")
-# def refresh_token(refresh_token: str, db: Session = Depends(get_db)) -> JSONResponse:
-#     try:
-#         code = refresh(refresh_token, db)
-#     except Exception as e:
-#         # unexpected error
-#         return custom_response(
-#             http_status=500,
-#             business_code=ResponseCode.SERVER_ERROR,
-#             message="Internal server error",
-#             data={"error": str(e)}
-#         )
+@router.post("/refresh")
+def refresh_token(request: Request, db: Session = Depends(get_db)) -> JSONResponse:
+    refresh_token = request.cookies.get("refresh_token")
+
+    if not refresh_token:
+        raise AppException(ResponseCode.NO_TOKEN_PROVIDED, http_status=401)
+
+    token = refresh(refresh_token, db)
+
+    if token.access_token is None or token.refresh_token is None:
+        raise AppException(ResponseCode.INVALID_TOKEN, http_status=401)
+
+    response = {
+        "access_token": token.access_token,
+        "token_type": "bearer"
+    }
+
+    # sends new refresh token as cookie again
+    response = JSONResponse(content=response)
+    response = set_auth_cookie(response, token.refresh_token, request)
+
+    return response
+
 
 
 # @router.post("/changepwd")

@@ -41,6 +41,11 @@ class LoggingMiddleware:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
+        
+        path = scope.get("path", "")
+        if path in {"/docs", "/redoc", "/openapi.json", "/docs/oauth2-redirect"}:
+            await self.app(scope, receive, send)
+            return
 
         # --- reads the body manually and replays for the app ---
         body = b""  # to store full request body

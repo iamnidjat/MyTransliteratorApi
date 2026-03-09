@@ -38,6 +38,7 @@ class ResponseCode(IntEnum):
     # Not Found
     USER_NOT_FOUND = 4000
     TRANSLITERATION_NOT_FOUND = 4001
+    NO_TOKEN_PROVIDED = 4002
 
     # Permission / Business Restrictions
     SERVICE_ERROR = 4100
@@ -69,4 +70,5 @@ MESSAGES: dict[ResponseCode, str] = {
     ResponseCode.LOGOUT_FAILED:       "Logout failed",  
     ResponseCode.USER_NOT_FOUND:      "User not found",
     ResponseCode.TRANSLITERATION_NOT_FOUND: "Transliteration not found",
+    ResponseCode.NO_TOKEN_PROVIDED:   "No token provided",
 }

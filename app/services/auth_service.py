@@ -145,9 +145,11 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
                     ResponseCode.INVALID_TOKEN,
                     http_status=401
                 )
+
         
         # marking old token as used 
         token_obj.is_used = True
+        db.flush() # → UPDATE refresh_tokens SET is_used = true
 
         user = token_obj.user
         new_access_token = create_access_token({"sub": str(user.id)})

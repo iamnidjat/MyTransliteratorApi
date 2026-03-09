@@ -211,3 +211,7 @@ test_main.http
 /app/utils/dev_seed.py
 
 /uploaded-files
+
+# Logs
+logs/
+*.log

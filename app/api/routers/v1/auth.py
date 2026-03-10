@@ -95,15 +95,17 @@ def refresh_token(request: Request, db: Session = Depends(get_db)) -> JSONRespon
 
 
 
-# @router.post("/changepwd")
-# def change_user_password(changePwd: ChangePassword, db: Session = Depends(get_db)) -> JSONResponse:
-#     try:
-#         code = change_password(changePwd, db)
-#     except Exception as e:
-#         # unexpected error
-#         return custom_response(
-#             http_status=500,
-#             business_code=ResponseCode.SERVER_ERROR,
-#             message="Internal server error",
-#             data={"error": str(e)}
-#         )
+@router.post("/changepwd")
+def change_user_password(changePwd: ChangePassword, db: Session = Depends(get_db)) -> JSONResponse:
+    code = change_password(changePwd, db)
+    return custom_response(
+        http_status=200,
+        business_code=code.response_code,
+        message=code.response_message,
+        data={
+            "user_id": code.user_id, 
+            "updated_at": code.updated_at
+        }
+    )
+
+

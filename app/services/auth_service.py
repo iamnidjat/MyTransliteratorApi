@@ -186,6 +186,9 @@ def change_password(changePwd: ChangePassword, db: Session) -> SuccessfulPwdChan
 
     if not verify_password(changePwd.pwd, user.hashed_password):
         raise AppException(ResponseCode.INVALID_OLD_PWD, http_status=401)
+    
+    if verify_password(changePwd.new_pwd, user.hashed_password):
+        raise AppException(ResponseCode.NEW_PASSWORD_SAME_AS_OLD, http_status=400)
 
     user.hashed_password = hash_password(changePwd.new_pwd)
     db.commit()

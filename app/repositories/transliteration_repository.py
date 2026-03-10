@@ -9,15 +9,29 @@ def create(transliteration: Transliteration, db: Session):
 def save(db: Session):
     db.commit()
 
-def get_active_by_user(user_id: int, db: Session):
+def get_active_by_user(page: int, page_size: int, user_id: int, db: Session):
+    offset = (page - 1) * page_size
     return (
         db.query(Transliteration)
         .filter(
             Transliteration.user_id == user_id,
             Transliteration.active == True
         )
+        .offset(offset)
+        .limit(page_size)
         .all()
     )
+
+def get_active_by_user_count(user_id: int, db: Session):
+    total = (
+        db.query(Transliteration)
+        .filter(
+            Transliteration.user_id == user_id,
+            Transliteration.active == True
+        )
+        .count()
+    )
+    return total
 
 def get_by_user_and_id(user_id: int, transliteration_id: int,  db: Session):
     return (

@@ -9,7 +9,7 @@ from app.core.models.transliteration_model import Transliteration
 from app.core.models.user_model import User
 from app.exceptions.handlers import AppException
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
-from app.repositories.transliteration_repository import create, save, get_active_by_user, get_by_user_and_id, soft_delete
+from app.repositories.transliteration_repository import create, get_active_by_user_count, save, get_active_by_user, get_by_user_and_id, soft_delete
 
 
 def from_cyrillic_to_latin_az(cyrillic_text: str, current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
@@ -61,8 +61,9 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
         status=1
     )
 
-def get_user_transliteration_history(user_id: int, db: Session) -> TransliterationHistoryListResponse:
-    t_histories = get_active_by_user(user_id, db)
+def get_user_transliteration_history(page: int, page_size: int, user_id: int, db: Session) -> TransliterationHistoryListResponse:
+    t_histories = get_active_by_user(page, page_size, user_id, db)
+    t_histories_length = get_active_by_user_count(user_id, db)
 
     result = []
     for t_history in t_histories:
@@ -80,7 +81,7 @@ def get_user_transliteration_history(user_id: int, db: Session) -> Transliterati
         ))
 
     return TransliterationHistoryListResponse(
-            total=len(result),
+            total=t_histories_length,
             history=result
         )
 

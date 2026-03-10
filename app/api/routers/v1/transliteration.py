@@ -129,8 +129,9 @@ async def transliterate_latin_to_cyrillic_az_file(
     "/me/history",
     response_model=TransliterationHistoryListResponse
 )
-def user_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> TransliterationHistoryListResponse:
-    return get_user_transliteration_history(current_user.id, db)
+def user_transliteration_history(page: int = 1, page_size: int = 100,
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> TransliterationHistoryListResponse:
+    return get_user_transliteration_history(page, page_size, current_user.id, db)
 
 @router.delete("/me/all")
 def remove_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:

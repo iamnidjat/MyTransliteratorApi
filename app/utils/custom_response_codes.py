@@ -29,7 +29,8 @@ class ResponseCode(IntEnum):
     INVALID_CREDENTIALS = 2003
     WRONG_PASSWORD = 2004
     INVALID_OLD_PWD = 2005
-    USER_ALREADY_EXISTS = 2006
+    NEW_PASSWORD_SAME_AS_OLD = 2006
+    USER_ALREADY_EXISTS = 2007
 
     # Authentication / Authorization
     UNAUTHORIZED_OP = 3000
@@ -71,4 +72,5 @@ MESSAGES: dict[ResponseCode, str] = {
     ResponseCode.USER_NOT_FOUND:      "User not found",
     ResponseCode.TRANSLITERATION_NOT_FOUND: "Transliteration not found",
     ResponseCode.NO_TOKEN_PROVIDED:   "No token provided",
+    ResponseCode.NEW_PASSWORD_SAME_AS_OLD : "New password is the same as old one",
 }

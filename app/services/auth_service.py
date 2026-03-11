@@ -11,6 +11,7 @@ from passlib.context import CryptContext
 
 from app.core.models.refresh_token import RefreshToken
 from app.exceptions.handlers import AppException
+from app.repositories.auth_repository import create, create_token, soft_delete
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
 from dotenv import load_dotenv
 import os
@@ -54,9 +55,7 @@ def signup(signUpCredentials: SignUp, db: Session) -> SuccessfulAuthentication:
         hashed_password = hash_password(signUpCredentials.password)
     )
     
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    create(new_user, db)
 
     auth = generate_auth_response(new_user)
     save_refresh_token(new_user.id, auth.refresh_token, db)
@@ -95,8 +94,7 @@ def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
             return ResponseCode.SUCCESS  # No tokens found — still okay to logout  
 
         for token in tokens:
-            # db.delete(token)
-            token.is_revoked = True
+            soft_delete(token)
         
         db.commit()
         return ResponseCode.SUCCESS
@@ -117,9 +115,7 @@ def save_refresh_token(user_id: int, token: str, db: Session) -> ResponseCode:
             user_id=user_id,
             expires_at=expires_at
         )
-        db.add(refresh_token)
-        db.commit()
-        db.refresh(refresh_token)
+        create_token(refresh_token, db)
         print(f"Saved refresh token for user_id={user_id}, token={token}")
         return ResponseCode.SUCCESS
     except SQLAlchemyError as e:
@@ -162,9 +158,7 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
             expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
         )
 
-        db.add(new_refresh_token_obj)
-        db.commit()
-        db.refresh(new_refresh_token_obj)
+        create_token(new_refresh_token_obj, db)
 
         return TokenRefreshResponse(
             access_token=new_access_token,

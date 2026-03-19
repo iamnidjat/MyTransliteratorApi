@@ -15,9 +15,21 @@ class Login(BaseModel):
     )
 
 class SignUp(BaseModel):
-    username: str
-    password: str
-    email: str
+    username: str = Field(
+        ...,
+        description="Make up username",
+        example="john_doe"
+    )
+    password: str = Field(
+        ...,
+        description="Make up password",
+        example="strongpassword123"
+    )
+    email: str = Field(
+        ...,
+        description="Enter your email",
+        example="youremail@gmail.com"
+    )
 
 class Logout(BaseModel):
     pass

@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 
 from app.core.models.refresh_token import RefreshToken
 from app.exceptions.handlers import AppException
-from app.repositories.auth_repository import create, create_token, soft_delete
+from app.repositories.auth_repository import create_user, create_token, soft_delete
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
 from dotenv import load_dotenv
 import os
@@ -25,7 +25,7 @@ load_dotenv()
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 
 def authenticate(loginCredentials: Login,  db: Session) -> SuccessfulAuthentication:
-    user = db.query(User).filter(User.name == loginCredentials.username).first()
+    user = db.query(User).filter(User.email == loginCredentials.username).first()
 
     if not user:
         # raise AppException(ResponseCode.USER_NOT_FOUND, http_status=404)
@@ -44,7 +44,7 @@ def authenticate(loginCredentials: Login,  db: Session) -> SuccessfulAuthenticat
     )
 
 def signup(signUpCredentials: SignUp, db: Session) -> SuccessfulAuthentication:
-    existing_user  = db.query(User).filter(User.name == signUpCredentials.username).first()
+    existing_user  = db.query(User).filter(User.email == signUpCredentials.email).first()
 
     if existing_user :
         raise AppException(ResponseCode.USER_ALREADY_EXISTS, http_status=409)
@@ -55,7 +55,7 @@ def signup(signUpCredentials: SignUp, db: Session) -> SuccessfulAuthentication:
         hashed_password = hash_password(signUpCredentials.password)
     )
     
-    create(new_user, db)
+    create_user(new_user, db)
 
     auth = generate_auth_response(new_user)
     save_refresh_token(new_user.id, auth.refresh_token, db)

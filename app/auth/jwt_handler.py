@@ -19,7 +19,7 @@ def create_access_token(data: dict):
     to_encode.update({
         "exp": expire,
         "iat": now, # issued at
-        "type": "access"
+        "type": "access",
     })
     return jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 

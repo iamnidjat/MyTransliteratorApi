@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+import json
 from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import SuccessfulTransliterationCreation, TransliterationHistory, \
     SuccessfulTransliterationHistoryRemoval, SuccessfulTransliterationRemoval, TransliterationHistoryListResponse
@@ -10,7 +10,8 @@ from app.core.models.user_model import User
 from app.exceptions.handlers import AppException
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
 from app.repositories.transliteration_repository import create, get_active_by_user_count, save, get_active_by_user, get_by_user_and_id, soft_delete
-
+from app.core.redis import redis_client
+import time
 
 def from_cyrillic_to_latin_az(cyrillic_text: str, current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
     return _transliterate(cyrillic_text, az_cyrillic_to_latin_lower, az_cyrillic_to_latin_upper, current_user, db)
@@ -50,6 +51,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
         )
         
         create(transliteration, db)
+        _invalidate_history_cache(current_user.id)
 
     return SuccessfulTransliterationCreation(
         original_text=text,
@@ -62,8 +64,30 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
     )
 
 def get_user_transliteration_history(page: int, page_size: int, user_id: int, db: Session) -> TransliterationHistoryListResponse:
+    cache_key = f"user:{user_id}:transliteration_history"
+
+    # 1️⃣ Try to get from Redis
+    start_redis = time.time()
+    cached = redis_client.get(cache_key)
+    redis_time = time.time() - start_redis
+
+    # getting from Redis
+    cached = redis_client.get(cache_key)
+
+    if cached:
+        print(f"Redis fetch time: {redis_time:.6f}s")
+        # if exists - returns cached data
+        return TransliterationHistoryListResponse.model_validate_json(cached)
+    
+    # 2️⃣ Fetch from DB
+    start_db = time.time()
     t_histories = get_active_by_user(page, page_size, user_id, db)
     t_histories_length = get_active_by_user_count(user_id, db)
+    db_time = time.time() - start_db
+    print(f"DB fetch time: {db_time:.6f}s")
+
+    # DB fetch: 0.047953s for 2 records → may increase with more records
+    # Redis fetch: 0.008229s for 2 records → almost constant, very fast caching
 
     result = []
     for t_history in t_histories:
@@ -80,10 +104,16 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
             response_message=MESSAGES[ResponseCode.SUCCESSFUL_TRANSLITERATION_REMOVAL],
         ))
 
-    return TransliterationHistoryListResponse(
-            total=t_histories_length,
-            history=result
-        )
+    response = TransliterationHistoryListResponse(
+        total=t_histories_length,
+        history=result
+    )    
+    
+    # cache the result for 5 minutes (balanced time; history can change quickly)
+    redis_client.set(cache_key, response.model_dump_json(), ex=300) # converting the Pydantic model to a Python dict, then
+                                                                           # converting the dict to JSON string, which Redis can store
+
+    return response
 
 def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTransliterationHistoryRemoval:
     t_histories = get_active_by_user(user_id, db)
@@ -92,6 +122,7 @@ def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTrans
         soft_delete(t_history)
 
     save(db)
+    _invalidate_history_cache(user_id)
 
     return SuccessfulTransliterationHistoryRemoval(
         response_code=ResponseCode.SUCCESSFUL_TRANSLITERATIONS_REMOVAL,
@@ -108,6 +139,7 @@ def delete_single_transliteration(user_id: int, transliteration_id: int , db: Se
 
     soft_delete(t_history)
     save(db)
+    _invalidate_history_cache(user_id)
     
     return SuccessfulTransliterationRemoval(
         original_text=t_history.original_text,
@@ -118,3 +150,7 @@ def delete_single_transliteration(user_id: int, transliteration_id: int , db: Se
         done_at=datetime.utcnow(),
         status=1
     )
+
+def _invalidate_history_cache(user_id: int):
+    cache_key = f"user:{user_id}:transliteration_history"
+    redis_client.delete(cache_key)

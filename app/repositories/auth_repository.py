@@ -12,6 +12,5 @@ def create_token(token: RefreshToken, db: Session):
     db.commit()
     db.refresh(token)
 
-
 def soft_delete(token: RefreshToken):
     token.is_revoked = True

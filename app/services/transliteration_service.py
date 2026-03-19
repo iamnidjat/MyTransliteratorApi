@@ -68,11 +68,9 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
 
     # 1️⃣ Try to get from Redis
     start_redis = time.time()
-    cached = redis_client.get(cache_key)
-    redis_time = time.time() - start_redis
-
     # getting from Redis
     cached = redis_client.get(cache_key)
+    redis_time = time.time() - start_redis
 
     if cached:
         print(f"Redis fetch time: {redis_time:.6f}s")
@@ -111,7 +109,7 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
     
     # cache the result for 5 minutes (balanced time; history can change quickly)
     redis_client.set(cache_key, response.model_dump_json(), ex=300) # converting the Pydantic model to a Python dict, then
-                                                                           # converting the dict to JSON string, which Redis can store
+                                                                    # converting the dict to JSON string, which Redis can store
 
     return response
 

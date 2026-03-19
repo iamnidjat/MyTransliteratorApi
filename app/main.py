@@ -43,7 +43,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={
             "business_code": ResponseCode.SERVER_ERROR,
             "message": MESSAGES[ResponseCode.SERVER_ERROR],
-            "data": None
+            "data": str(exc)  # actual error message
         },
     )
 

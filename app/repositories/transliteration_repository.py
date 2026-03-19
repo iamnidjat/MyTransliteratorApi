@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.core.models.transliteration_model import Transliteration
 from sqlalchemy.orm import Session
 
@@ -44,5 +46,6 @@ def get_by_user_and_id(user_id: int, transliteration_id: int,  db: Session):
     )      
 
 def soft_delete(transliteration: Transliteration):
-    # db.delete(t_history)
+    # db.delete(t_history) -> hard delete
     transliteration.active = False
+    transliteration.revoked_at = datetime.utcnow()

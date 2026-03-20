@@ -1,15 +1,21 @@
 # MyTransliterator (Backend - FastAPI)
 
-**MyTransliterator** is a backend API built with **FastAPI** that provides text transliteration services.
+**MyTransliterator** is a backend API built with FastAPI that provides text transliteration services.
 
 ---
 
 ## Features
 
-- Transliteration: Azerbaijani **Cyrillic ↔ Latin**
-- User authentication: **signup, login, logout**
-- Designed for **future expansion**: other languages and scripts
-- Returns **unrecognized symbols** in transliteration
+* **Transliteration:** Azerbaijani Cyrillic ↔ Latin
+* **User Authentication:** signup, login, logout
+* **TXT File Upload:** users can upload `.txt` files for transliteration
+* **Transliteration History:** retrieve user transliteration history
+* **Manage Transliterations:** ability to remove saved transliterations
+* **Logging:** request and system activity logging implemented
+* **Performance Optimization:** Redis caching used to improve API speed
+* **Containerization:** Docker support for easy deployment
+* Returns unrecognized symbols in transliteration
+* Designed for future expansion to support other languages and scripts
 
 ---
 
@@ -23,14 +29,18 @@ python -m venv venv
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
-API available at: http://127.0.0.1:8000
 
-Swagger docs: http://127.0.0.1:8000/docs
+API available at:
+[http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-# Future Plans
+Swagger docs:
+[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-More languages (beyond Azerbaijani)
+---
 
-File uploads
+## Future Plans
 
-Enhanced API responses
+* Support for more languages (beyond Azerbaijani)
+* Upload support for additional file formats (Word, PDF)
+* Full API documentation improvements
+* Enhanced API responses

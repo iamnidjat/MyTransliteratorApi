@@ -16,9 +16,6 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 COPY . .
 # copying the entire project from your local machine into the container's /app directory
 
-COPY .env .env
-# copying local environment variables
-
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 # starting the FastAPI application using Uvicorn when the container runs
 # "app.main:app" → points to the FastAPI instance (app variable inside main.py in app folder)

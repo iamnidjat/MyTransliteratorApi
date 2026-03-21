@@ -215,3 +215,10 @@ test_main.http
 # Logs
 logs/
 *.log
+
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+.docker-compose.yml

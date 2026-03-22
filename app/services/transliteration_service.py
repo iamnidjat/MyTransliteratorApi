@@ -66,26 +66,26 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
 def get_user_transliteration_history(page: int, page_size: int, user_id: int, db: Session) -> TransliterationHistoryListResponse:
     cache_key = f"user:{user_id}:transliteration_history"
 
-    # 1️⃣ Try to get from Redis
-    start_redis = time.time()
+    # trying to get from Redis
+   # start_redis = time.time()
     # getting from Redis
     cached = redis_client.get(cache_key)
-    redis_time = time.time() - start_redis
+   # redis_time = time.time() - start_redis
 
     if cached:
-        print(f"Redis fetch time: {redis_time:.6f}s")
+       # print(f"Redis fetch time: {redis_time:.6f}s")
         # if exists - returns cached data
         return TransliterationHistoryListResponse.model_validate_json(cached)
     
-    # 2️⃣ Fetch from DB
-    start_db = time.time()
+    # fetching from DB
+   # start_db = time.time()
     t_histories = get_active_by_user(page, page_size, user_id, db)
     t_histories_length = get_active_by_user_count(user_id, db)
-    db_time = time.time() - start_db
-    print(f"DB fetch time: {db_time:.6f}s")
+   # db_time = time.time() - start_db
+   # print(f"DB fetch time: {db_time:.6f}s")
 
-    # DB fetch: 0.047953s for 2 records → may increase with more records
-    # Redis fetch: 0.008229s for 2 records → almost constant, very fast caching
+    # DB fetch: 0.005162s for 2 records → may increase with more records
+    # Redis fetch: 0.000355s for 2 records → almost constant, very fast caching
 
     result = []
     for t_history in t_histories:

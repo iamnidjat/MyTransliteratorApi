@@ -29,10 +29,10 @@ To stop the app: docker-compose down
 ```
 
 API available at:
-[http://127.0.0.1:8000](http://127.0.0.1:8080)
+[http://127.0.0.1:8080](http://127.0.0.1:8080)
 
 Swagger docs:
-[http://127.0.0.1:8000/docs](http://127.0.0.1:8080/docs)
+[http://127.0.0.1:8080/docs](http://127.0.0.1:8080/docs)
 
 ---
 

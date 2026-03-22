@@ -24,10 +24,8 @@
 ```bash
 git clone https://github.com/iamnidjat/MyTransliterator.git
 cd MyTransliterator
-python -m venv venv
-# activate venv
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+docker-compose up --build -d
+To stop the app: docker-compose down
 ```
 
 API available at:

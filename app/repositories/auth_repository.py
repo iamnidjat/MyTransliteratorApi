@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.core.models.refresh_token import RefreshToken
 from app.core.models.user_model import User
 from sqlalchemy.orm import Session
@@ -14,3 +16,4 @@ def create_token(token: RefreshToken, db: Session):
 
 def soft_delete(token: RefreshToken):
     token.is_revoked = True
+    token.revoked_at = datetime.utcnow()

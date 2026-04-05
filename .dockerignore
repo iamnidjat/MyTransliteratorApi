@@ -217,6 +217,7 @@ test_main.http
 logs/
 *.log
 
+.git
 .gitignore
 
 # Docker files

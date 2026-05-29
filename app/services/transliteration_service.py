@@ -64,7 +64,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
     )
 
 def get_user_transliteration_history(page: int, page_size: int, user_id: int, db: Session) -> TransliterationHistoryListResponse:
-    cache_key = f"user:{user_id}:transliteration_history"
+    cache_key = f"user:{user_id}:transliteration_history:page:{page}:page_size:{page_size}"
 
     # trying to get from Redis
    # start_redis = time.time()
@@ -149,6 +149,8 @@ def delete_single_transliteration(user_id: int, transliteration_id: int , db: Se
         status=1
     )
 
-def _invalidate_history_cache(user_id: int):
-    cache_key = f"user:{user_id}:transliteration_history"
-    redis_client.delete(cache_key)
+def _invalidate_history_cache(user_id: int) -> None:
+    pattern = f"user:{user_id}:transliteration_history:*"
+    
+    for key in redis_client.scan_iter(match=pattern):
+        redis_client.delete(key)

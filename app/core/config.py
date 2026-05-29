@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings # auto-fills values from environment
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # Pydantic v2
     model_config = {
         "env_file": ".env",  # tells Pydantic to also look in the .env file for values of these settings
-        "extra": "allow"  # allows any other keys in the .env without error
+        "extra": "allow"  # allows any other keys in the .env without error (if there are unknown fields, don’t crash — just accept them)
     }
 
 settings = Settings()

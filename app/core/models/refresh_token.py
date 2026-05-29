@@ -5,7 +5,7 @@ from app.core.database import Base
 
 
 class RefreshToken(Base):
-    __tablename__ = "refresh_tokens"
+    __tablename__ = "refresh_tokens" # like DbSet in EF Core
 
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True, index=True, nullable=False)

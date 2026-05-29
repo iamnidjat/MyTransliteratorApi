@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TransliterationRequest(BaseModel):
@@ -22,7 +22,7 @@ class SuccessfulTransliterationCreation(BaseModel):
     response_message: str = "success"
     unrecognized_symbols: list[str] = []
     created_at: datetime
-    status: int
+    status: Literal[1, 2] = Field(..., description="1 = successfull, 2 = failed")
 
 class SuccessfulTransliterationRemoval(BaseModel):
     original_text: str
@@ -31,13 +31,13 @@ class SuccessfulTransliterationRemoval(BaseModel):
     response_message: str = "success"
     unrecognized_symbols: list[str] = []
     done_at: datetime
-    status: int
+    status: Literal[1, 2] = Field(..., description="1 = successfull, 2 = failed")
 
 class SuccessfulTransliterationHistoryRemoval(BaseModel):
     response_code: int = 200 # default value
     response_message: str = "success"
     done_at: datetime
-    status: int
+    status: Literal[1, 2] = Field(..., description="1 = successfull, 2 = failed")
 
 class TransliterationHistory(BaseModel):
     original_text: str
@@ -48,7 +48,7 @@ class TransliterationHistory(BaseModel):
     response_code: int = 200
     response_message: str = "success"
     created_at: datetime
-    status: int
+    status: Literal[1, 2] = Field(..., description="1 = successfull, 2 = failed")
     active: bool
 
 class TransliterationHistoryListResponse(BaseModel):

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 
 
@@ -6,7 +6,7 @@ class Login(BaseModel):
     username: str = Field(
         ...,
         description="Enter your username",
-        example="john_doe"
+        example="youremail@gmail.com"
     )
     password: str = Field(
         ...,
@@ -22,10 +22,11 @@ class SignUp(BaseModel):
     )
     password: str = Field(
         ...,
+        min_length=6,
         description="Make up password",
         example="strongpassword123"
     )
-    email: str = Field(
+    email: EmailStr = Field(
         ...,
         description="Enter your email",
         example="youremail@gmail.com"
@@ -37,7 +38,7 @@ class Logout(BaseModel):
 class AuthenticatedUser(BaseModel):
     id: int
     name: str
-    email: str
+    email: EmailStr
 
 class Authenticate(BaseModel):
     access_token: str
@@ -56,9 +57,14 @@ class SuccessfulPwdChange(BaseModel):
     updated_at: datetime
 
 class ChangePassword(BaseModel):
-    email: str
+    email: EmailStr
     pwd: str
-    new_pwd: str
+    new_pwd: str = Field(
+        ...,
+        min_length=6,
+        description="Make up new password",
+        example="strongpassword123"
+    )
 
 class TokenRefreshResponse(BaseModel):
     access_token: str

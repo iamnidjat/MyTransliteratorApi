@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import SuccessfulTransliterationCreation, TransliterationHistory, \
@@ -45,7 +45,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
             target_language="az",
             original_text=text,
             translated_text=result_text,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             status=1,
             active=True,
         )
@@ -59,7 +59,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
         response_code=ResponseCode.SUCCESSFUL_TRANSLITERATION_CREATION,
         response_message=MESSAGES[ResponseCode.SUCCESSFUL_TRANSLITERATION_CREATION],
         unrecognized_symbols=unrecognized,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
         status=1
     )
 
@@ -125,7 +125,7 @@ def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTrans
     return SuccessfulTransliterationHistoryRemoval(
         response_code=ResponseCode.SUCCESSFUL_TRANSLITERATIONS_REMOVAL,
         response_message=MESSAGES[ResponseCode.SUCCESSFUL_TRANSLITERATIONS_REMOVAL],
-        done_at=datetime.utcnow(),
+        done_at=datetime.now(timezone.utc),
         status=1
     )
 
@@ -145,7 +145,7 @@ def delete_single_transliteration(user_id: int, transliteration_id: int , db: Se
         response_code=ResponseCode.SUCCESSFUL_TRANSLITERATION_REMOVAL,
         response_message=MESSAGES[ResponseCode.SUCCESSFUL_TRANSLITERATION_REMOVAL],
         unrecognized_symbols=t_history.unrecognized_symbols,
-        done_at=datetime.utcnow(),
+        done_at=datetime.now(timezone.utc),
         status=1
     )
 

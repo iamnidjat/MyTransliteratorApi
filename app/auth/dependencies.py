@@ -76,7 +76,7 @@ security = HTTPBearer()
 security_optional = HTTPBearer(auto_error=False)
 
 def get_current_user(
-     credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     token = credentials.credentials
@@ -114,7 +114,7 @@ def get_current_user(
     return user
 
 def get_optional_current_user(
-     credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
     db: Session = Depends(get_db)
 ) -> Optional[User]:
     if credentials is None:

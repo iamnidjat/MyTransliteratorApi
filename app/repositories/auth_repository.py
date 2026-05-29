@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.models.refresh_token import RefreshToken
 from app.core.models.user_model import User
@@ -16,4 +16,4 @@ def create_token(token: RefreshToken, db: Session):
 
 def soft_delete(token: RefreshToken):
     token.is_revoked = True
-    token.revoked_at = datetime.utcnow()
+    token.revoked_at = datetime.now(timezone.utc)

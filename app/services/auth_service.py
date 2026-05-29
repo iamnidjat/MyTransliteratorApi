@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -108,7 +108,7 @@ def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
 
 def save_refresh_token(user_id: int, token: str, db: Session) -> ResponseCode:
     try:
-        expires_at = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
         hashed_token = hash_token(token)
         refresh_token = RefreshToken(
             token=hashed_token,
@@ -131,7 +131,7 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
     try:
         token_obj = db.query(RefreshToken).filter(
             RefreshToken.token == hashed_token,
-            RefreshToken.expires_at > datetime.utcnow(),
+            RefreshToken.expires_at > datetime.now(timezone.utc),
             RefreshToken.is_used == False,
             RefreshToken.is_revoked == False,
         ).first()
@@ -155,7 +155,7 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
         new_refresh_token_obj = RefreshToken(
             token=new_hashed_token,
             user_id=user.id,
-            expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
         )
 
         create_token(new_refresh_token_obj, db)
@@ -173,7 +173,7 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
         )
 
 def change_password(changePwd: ChangePassword, user: User, db: Session) -> SuccessfulPwdChange:
-    
+
     if not user:
         raise AppException(ResponseCode.INVALID_ACCOUNT, http_status=404)
 
@@ -191,5 +191,5 @@ def change_password(changePwd: ChangePassword, user: User, db: Session) -> Succe
         response_code=ResponseCode.SUCCESSFUL_PWD_CHANGE,
         response_message=MESSAGES[ResponseCode.SUCCESSFUL_PWD_CHANGE],
         user_id=user.id,
-        updated_at=datetime.utcnow()
+        updated_at=datetime.now(timezone.utc)
     )

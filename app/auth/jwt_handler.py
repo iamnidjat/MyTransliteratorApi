@@ -1,6 +1,6 @@
 import secrets
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
 from jose import jwt, JWTError
 from dotenv import load_dotenv
@@ -14,7 +14,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv('REFRESH_TOKEN_EXPIRE_DAYS', 7))
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({
         "exp": expire,

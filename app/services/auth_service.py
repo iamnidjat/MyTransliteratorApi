@@ -172,9 +172,8 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
             http_status=500
         )
 
-def change_password(changePwd: ChangePassword, db: Session) -> SuccessfulPwdChange:
-    user = db.query(User).filter(User.email == changePwd.email).first()
-
+def change_password(changePwd: ChangePassword, user: User, db: Session) -> SuccessfulPwdChange:
+    
     if not user:
         raise AppException(ResponseCode.INVALID_ACCOUNT, http_status=404)
 

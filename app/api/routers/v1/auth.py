@@ -94,8 +94,8 @@ def refresh_token(request: Request, db: Session = Depends(get_db)) -> JSONRespon
     return response
 
 @router.post("/changepwd")
-def change_user_password(changePwd: ChangePassword, db: Session = Depends(get_db)) -> JSONResponse:
-    code = change_password(changePwd, db)
+def change_user_password(changePwd: ChangePassword, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
+    code = change_password(changePwd, current_user, db)
     return custom_response(
         http_status=200,
         business_code=code.response_code,

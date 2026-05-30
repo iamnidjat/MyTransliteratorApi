@@ -73,7 +73,7 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
    # redis_time = time.time() - start_redis
 
     if cached:
-       # print(f"Redis fetch time: {redis_time:.6f}s")
+        # print(f"Redis fetch time: {redis_time:.6f}s")
         # if exists - returns cached data
         return TransliterationHistoryListResponse.model_validate_json(cached)
     

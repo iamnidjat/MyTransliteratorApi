@@ -31,7 +31,7 @@ async def app_exception_handler(request: Request, exc: AppException):
     return JSONResponse(
         status_code=exc.http_status,
         content={
-            "code": exc.business_code,
+            "business_code": exc.business_code,
             "message": message,
         },
     )
@@ -43,7 +43,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={
             "business_code": ResponseCode.SERVER_ERROR,
             "message": MESSAGES[ResponseCode.SERVER_ERROR],
-            "data": str(exc)  # actual error message
+            # "data": str(exc)  # actual error message (! can expose internal error details in production !)
         },
     )
 

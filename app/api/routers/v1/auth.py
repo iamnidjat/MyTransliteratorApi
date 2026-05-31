@@ -1,3 +1,4 @@
+from app.core.rate_limiter import rate_limit_auth, rate_limit_private
 from fastapi import APIRouter, Body, Depends, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -17,7 +18,7 @@ router = APIRouter(
 )
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(rate_limit_auth)])
 def login(request: Login, response: Response, db: Session = Depends(get_db)) -> JSONResponse:
     result = authenticate(request, db)
 
@@ -38,7 +39,7 @@ def login(request: Login, response: Response, db: Session = Depends(get_db)) -> 
 
     return response
 
-@router.post("/signup")
+@router.post("/signup", dependencies=[Depends(rate_limit_auth)])
 def register(request: SignUp, response: Response, db: Session = Depends(get_db)) -> JSONResponse:
     result = signup(request, db)
 
@@ -58,7 +59,7 @@ def register(request: SignUp, response: Response, db: Session = Depends(get_db))
 
     return response
     
-@router.post("/logout")
+@router.post("/logout", dependencies=[Depends(rate_limit_private)])
 def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     revoke_user_tokens(current_user.id, db)
 
@@ -70,7 +71,7 @@ def logout(current_user: User = Depends(get_current_user), db: Session = Depends
     )
 
 
-@router.post("/refresh")
+@router.post("/refresh", dependencies=[Depends(rate_limit_private)])
 def refresh_token(request: Request, db: Session = Depends(get_db)) -> JSONResponse:
     refresh_token = request.cookies.get("refresh_token")
 
@@ -93,7 +94,7 @@ def refresh_token(request: Request, db: Session = Depends(get_db)) -> JSONRespon
 
     return response
 
-@router.post("/changepwd")
+@router.post("/changepwd", dependencies=[Depends(rate_limit_private)])
 def change_user_password(changePwd: ChangePassword, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     code = change_password(changePwd, current_user, db)
     return custom_response(

@@ -11,7 +11,6 @@ from app.exceptions.handlers import AppException
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
 from app.repositories.transliteration_repository import create, get_active_by_user_count, save, get_active_by_user, get_by_user_and_id, soft_delete
 from app.core.redis import redis_client
-import time
 
 def from_cyrillic_to_latin_az(cyrillic_text: str, current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
     return _transliterate(cyrillic_text, az_cyrillic_to_latin_lower, az_cyrillic_to_latin_upper, current_user, db)

@@ -1,3 +1,4 @@
+from app.core.rate_limiter import rate_limit_private, rate_limit_public
 from fastapi import APIRouter, Body, Depends, File, Path, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -16,7 +17,7 @@ router = APIRouter(
     tags=["transliteration"],
 )
 
-@router.post("/az/cyrillic-to-latin")
+@router.post("/az/cyrillic-to-latin", dependencies=[Depends(rate_limit_public)])
 def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
         ...,
         examples={
@@ -45,7 +46,7 @@ def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
                             "unrecognized_symbols": result.unrecognized_symbols
                         })
 
-@router.post("/az/latin-to-cyrillic")
+@router.post("/az/latin-to-cyrillic", dependencies=[Depends(rate_limit_public)])
 def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
         ...,
         examples={
@@ -75,7 +76,7 @@ def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
                         })
 
 
-@router.post("/az/cyrillic-to-latin/file")
+@router.post("/az/cyrillic-to-latin/file", dependencies=[Depends(rate_limit_public)])
 async def transliterate_cyrillic_to_latin_az_file(
     file: UploadFile = File(..., description="Upload a .txt file"),
     current_user: User | None = Depends(get_optional_current_user),
@@ -93,7 +94,7 @@ async def transliterate_cyrillic_to_latin_az_file(
                                 "unrecognized_symbols": result.unrecognized_symbols
                             })
 
-@router.post("/az/latin-to-cyrillic/file")
+@router.post("/az/latin-to-cyrillic/file", dependencies=[Depends(rate_limit_public)])
 async def transliterate_latin_to_cyrillic_az_file(
     file: UploadFile = File(..., description="Upload a .txt file"),
     current_user: User | None = Depends(get_optional_current_user),
@@ -127,13 +128,14 @@ async def transliterate_latin_to_cyrillic_az_file(
 #         return custom_response(500, "Internal server error", {"error": str(e)})
 @router.get(
     "/me/history",
-    response_model=TransliterationHistoryListResponse
+    response_model=TransliterationHistoryListResponse,
+    dependencies=[Depends(rate_limit_private)]
 )
 def user_transliteration_history(page: int = 1, page_size: int = 100,
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> TransliterationHistoryListResponse:
     return get_user_transliteration_history(page, page_size, current_user.id, db)
 
-@router.delete("/me/all")
+@router.delete("/me/all", dependencies=[Depends(rate_limit_private)])
 def remove_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     result = delete_transliteration_history(current_user.id, db)
     return custom_response(http_status=200,
@@ -145,7 +147,7 @@ def remove_transliteration_history(current_user: User = Depends(get_current_user
                             })
 
 
-@router.delete("/me/{transliteration_id}")
+@router.delete("/me/{transliteration_id}", dependencies=[Depends(rate_limit_private)])
 def remove_single_transliteration(transliteration_id: int = Path(..., description="transliteration id", example=1), 
                                 current_user: User = Depends(get_current_user),                                 
                                 db: Session = Depends(get_db)) -> JSONResponse:

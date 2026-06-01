@@ -16,9 +16,19 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 COPY . .
 # copying the entire project from your local machine into the container's /app directory
 
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -f http://localhost:8000/v1/health || exit 1
+# Docker will periodically check if app is alive
+# Every 30 seconds, Docker runs the check
+# 5 seconds is the maximum time Docker waits for the check to finish, if request takes more than 5 seconds → FAIL
+# failures are allowed before marking unhealthy (to prevent false alarms)
+# CMD curl -f http://localhost:8000/v1/health -> This is the actual test command
+# curl -f = “fail on HTTP error status codes”
+# If curl fails → exit with error code 1 (unhealthy); 0 means healthy
+# If /health fails → container marked unhealthy
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 # starting the FastAPI application using Uvicorn when the container runs
 # "app.main:app" → points to the FastAPI instance (app variable inside main.py in app folder)
 # --host 0.0.0.0 → makes the app accessible from outside the container
 # --port 8000 → runs the server on port 8000
-# --reload → automatically reloads the server when code changes
+# --reload → automatically reloads the server when code changes (should be removed in production for better performance)

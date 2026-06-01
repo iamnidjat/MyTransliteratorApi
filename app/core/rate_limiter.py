@@ -23,8 +23,7 @@ def rate_limit_public(request: Request, user: User | None = Depends(get_optional
         redis_client.expire(key, 60)  # 1 minute window
 
     if count > 10:
-        raise HTTPException(status_code=429, detail="Too many requests. Please try again later.")
-
+        raise HTTPException(status_code=429, detail="Too many requests. Please try again in few minutes.")
 
 
 def rate_limit_private(user: User = Depends(get_current_user)):
@@ -38,7 +37,7 @@ def rate_limit_private(user: User = Depends(get_current_user)):
         redis_client.expire(key, 60)  # 1 minute window
 
     if count > 60:
-        raise HTTPException(status_code=429, detail="Too many requests. Please try again later.")
+        raise HTTPException(status_code=429, detail="Too many requests. Please try again in few minutes.")
     
     
 def rate_limit_auth(request: Request, user: User | None = Depends(get_optional_current_user)):
@@ -57,7 +56,7 @@ def rate_limit_auth(request: Request, user: User | None = Depends(get_optional_c
         redis_client.expire(key, 60)  # 1 minute window
 
     if count > 5:
-        raise HTTPException(status_code=429, detail="Too many requests. Please try again later.")
+        raise HTTPException(status_code=429, detail="Too many requests. Please try again in few minutes.")
     
 
 def get_client_ip(request: Request):

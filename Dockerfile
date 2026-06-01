@@ -20,7 +20,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -f http://localhost
 # Docker will periodically check if app is alive
 # Every 30 seconds, Docker runs the check
 # 5 seconds is the maximum time Docker waits for the check to finish, if request takes more than 5 seconds → FAIL
-# failures are allowed before marking unhealthy (to prevent false alarms)
+# 3 consecutive failures are allowed before marking unhealthy (to prevent false alarms)
 # CMD curl -f http://localhost:8000/v1/health -> This is the actual test command
 # curl -f = “fail on HTTP error status codes”
 # If curl fails → exit with error code 1 (unhealthy); 0 means healthy

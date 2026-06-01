@@ -15,6 +15,9 @@ from app.repositories.auth_repository import create_user, create_token, soft_del
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
 from dotenv import load_dotenv
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
@@ -29,14 +32,24 @@ def authenticate(loginCredentials: Login,  db: Session) -> SuccessfulAuthenticat
 
     if not user:
         # raise AppException(ResponseCode.USER_NOT_FOUND, http_status=404)
+        logger.warning("Authentication failed: user not found", extra={
+            "username": loginCredentials.username
+        })
         raise AppException(ResponseCode.INVALID_CREDENTIALS, http_status=401) # for better security
 
     if not verify_password(loginCredentials.password, user.hashed_password):
         # raise AppException(ResponseCode.WRONG_PASSWORD, http_status=401)
+        logger.warning("Authentication failed: invalid password", extra={
+            "username": loginCredentials.username
+        })
         raise AppException(ResponseCode.INVALID_CREDENTIALS, http_status=401) # for better security
 
     auth = generate_auth_response(user)
     save_refresh_token(user.id, auth.refresh_token, db)
+
+    logger.info("Authentication successful", extra={
+        "user_id": user.id
+    })
 
     return SuccessfulAuthentication(
         business_code=ResponseCode.SUCCESS,
@@ -47,6 +60,9 @@ def signup(signUpCredentials: SignUp, db: Session) -> SuccessfulAuthentication:
     existing_user  = db.query(User).filter(User.email == signUpCredentials.email).first()
 
     if existing_user :
+        logger.warning("Signup failed: user already exists", extra={
+            "username": signUpCredentials.username
+        })
         raise AppException(ResponseCode.USER_ALREADY_EXISTS, http_status=409)
     
     new_user = User(
@@ -56,6 +72,7 @@ def signup(signUpCredentials: SignUp, db: Session) -> SuccessfulAuthentication:
     )
     
     create_user(new_user, db)
+    logger.info("User created", extra={"user_id": new_user.id})
 
     auth = generate_auth_response(new_user)
     save_refresh_token(new_user.id, auth.refresh_token, db)
@@ -83,16 +100,23 @@ def generate_auth_response(user: User) -> Authenticate:
     )
 
 def logout(user_id: int, db: Session) -> ResponseCode:
+    logger.info("Logging out user", extra={"user_id": user_id})
     return revoke_refresh_token(user_id, db)
 
 def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
     try:
         tokens = db.query(RefreshToken).filter(RefreshToken.user_id == user_id).all()
-        print(f"Revoking {len(tokens)} refresh tokens for user_id={user_id}")
 
         if not tokens:
-            return ResponseCode.SUCCESS  # No tokens found — still okay to logout  
+            logger.info("No refresh tokens found", extra={
+                "user_id": user_id
+            })
+            return ResponseCode.SUCCESS # No tokens found — still okay to logout  
 
+        logger.info("Revoking refresh tokens", extra={
+            "user_id": user_id,
+            "token_count": len(tokens)
+        })
         for token in tokens:
             soft_delete(token)
         
@@ -100,7 +124,9 @@ def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
         return ResponseCode.SUCCESS
     except SQLAlchemyError as e:
         db.rollback()  # undo changes if something fails
-        print(f"Error revoking refresh tokens: {e}")
+        logger.exception("Error revoking refresh tokens", extra={
+            "user_id": user_id
+        })
         raise AppException(
             ResponseCode.SERVER_ERROR,
             http_status=500
@@ -116,11 +142,15 @@ def save_refresh_token(user_id: int, token: str, db: Session) -> ResponseCode:
             expires_at=expires_at
         )
         create_token(refresh_token, db)
-        print(f"Saved refresh token for user_id={user_id}, token={token}")
+        logger.info("Refresh token saved", extra={
+            "user_id": user_id
+        })
         return ResponseCode.SUCCESS
     except SQLAlchemyError as e:
         db.rollback()
-        print(f"Error saving refresh token: {e}")
+        logger.exception("Error saving refresh tokens", extra={
+            "user_id": user_id
+        })
         raise AppException(
             ResponseCode.SERVER_ERROR,
             http_status=500
@@ -137,15 +167,20 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
         ).first()
 
         if not token_obj:
+            logger.warning("Invalid refresh token attempt")
             raise AppException(
                     ResponseCode.INVALID_TOKEN,
                     http_status=401
                 )
-
         
         # marking old token as used 
         token_obj.is_used = True
         db.flush() # → UPDATE refresh_tokens SET is_used = true
+
+        logger.info("Old refresh token marked as used", extra={
+            "user_id": token_obj.user_id,
+            "token_id": token_obj.id
+        })
 
         user = token_obj.user
         new_access_token = create_access_token({"sub": str(user.id)})
@@ -160,13 +195,19 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
 
         create_token(new_refresh_token_obj, db)
 
+        logger.info("Token refreshed", extra={
+            "user_id": user.id
+        })
+
         return TokenRefreshResponse(
             access_token=new_access_token,
             refresh_token=new_refresh_token
         )
     except SQLAlchemyError as e:
         db.rollback()
-        print(f"Error refreshing access token: {e}")
+        logger.exception("Error refreshing access token", extra={
+            "user_id": user.id if user else None
+        })
         raise AppException(
             ResponseCode.SERVER_ERROR,
             http_status=500
@@ -175,17 +216,30 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
 def change_password(changePwd: ChangePassword, user: User, db: Session) -> SuccessfulPwdChange:
 
     if not user:
+        logger.warning("Password change failed: user not found", extra={
+            "user_id": user.id if user else None
+        })
         raise AppException(ResponseCode.INVALID_ACCOUNT, http_status=404)
 
     if not verify_password(changePwd.pwd, user.hashed_password):
+        logger.warning("Password change failed: invalid old password", extra={
+            "user_id": user.id if user else None
+        })
         raise AppException(ResponseCode.INVALID_OLD_PWD, http_status=401)
     
     if verify_password(changePwd.new_pwd, user.hashed_password):
+        logger.warning("Password change failed: new password is the same as the old password", extra={
+            "user_id": user.id if user else None
+        })
         raise AppException(ResponseCode.NEW_PASSWORD_SAME_AS_OLD, http_status=400)
 
     user.hashed_password = hash_password(changePwd.new_pwd)
     db.commit()
     db.refresh(user)
+
+    logger.info("Password changed", extra={
+        "user_id": user.id
+    })
 
     return SuccessfulPwdChange(
         response_code=ResponseCode.SUCCESSFUL_PWD_CHANGE,

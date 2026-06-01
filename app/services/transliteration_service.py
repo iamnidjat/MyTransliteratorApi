@@ -11,6 +11,9 @@ from app.exceptions.handlers import AppException
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
 from app.repositories.transliteration_repository import create, get_active_by_user_count, save, get_active_by_user, get_by_user_and_id, soft_delete
 from app.core.redis import redis_client
+import logging
+
+logger = logging.getLogger(__name__)
 
 def from_cyrillic_to_latin_az(cyrillic_text: str, current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
     return _transliterate(cyrillic_text, az_cyrillic_to_latin_lower, az_cyrillic_to_latin_upper, current_user, db)
@@ -29,6 +32,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
             elif ch in mapping_upper:
                 result.append(mapping_upper.get(ch))
             else:
+                logger.warning(f"Unrecognized character: {ch}")
                 result.append('?') # adding ? to specify that the symbol is unrecognized
                 unrecognized.append(ch)
                 # result.append(ch) approach 2
@@ -74,10 +78,13 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
     if cached:
         # print(f"Redis fetch time: {redis_time:.6f}s")
         # if exists - returns cached data
+        logger.info(f"Redis cache HIT: {cache_key}")
         return TransliterationHistoryListResponse.model_validate_json(cached)
     
     # fetching from DB
    # start_db = time.time()
+    logger.info(f"Redis cache MISS: {cache_key}")
+    logger.info(f"Fetching history from DB user_id={user_id}")
     t_histories = get_active_by_user(page, page_size, user_id, db)
     t_histories_length = get_active_by_user_count(user_id, db)
    # db_time = time.time() - start_db
@@ -106,6 +113,7 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
         history=result
     )    
     
+    logger.info(f"Caching history result user_id={user_id}")
     # cache the result for 5 minutes (balanced time; history can change quickly)
     redis_client.set(cache_key, response.model_dump_json(), ex=300) # converting the Pydantic model to a Python dict, then
                                                                     # converting the dict to JSON string, which Redis can store
@@ -115,6 +123,7 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
 def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTransliterationHistoryRemoval:
     t_histories = get_active_by_user(user_id, db)
 
+    logger.info(f"Soft delete all history user_id={user_id}")
     for t_history in t_histories:
         soft_delete(t_history)
 
@@ -134,6 +143,7 @@ def delete_single_transliteration(user_id: int, transliteration_id: int , db: Se
     if not t_history:
         raise AppException(ResponseCode.TRANSLITERATION_NOT_FOUND, http_status=404)
 
+    logger.info(f"Soft deleting transliteration user_id={user_id}, id={transliteration_id}")
     soft_delete(t_history)
     save(db)
     _invalidate_history_cache(user_id)

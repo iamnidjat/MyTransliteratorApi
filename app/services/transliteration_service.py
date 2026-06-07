@@ -22,6 +22,17 @@ def from_latin_to_cyrillic_az(cyrillic_text: str, current_user: User | None, db:
     return _transliterate(cyrillic_text, az_latin_to_cyrillic_lower, az_latin_to_cyrillic_upper, current_user, db)
 
 def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict[str, str], current_user: User | None, db: Session) -> SuccessfulTransliterationCreation:
+    if text.strip() == "":
+        return SuccessfulTransliterationCreation(
+            original_text=text,
+            result_text=text,
+            response_code=ResponseCode.NO_TRANSLITERATION_PERFORMED,
+            response_message=MESSAGES[ResponseCode.NO_TRANSLITERATION_PERFORMED],
+            unrecognized_symbols=[],
+            created_at=datetime.now(timezone.utc),
+            status=1
+        )
+    
     result = []
     unrecognized = []
 

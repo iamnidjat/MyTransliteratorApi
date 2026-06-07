@@ -17,6 +17,7 @@ class ResponseCode(IntEnum):
     SUCCESSFUL_TRANSLITERATION_REMOVAL = 1101
     SUCCESSFUL_TRANSLITERATIONS_REMOVAL = 1102
     SUCCESSFUL_TRANSLITERATIONS_READING = 1103
+    NO_TRANSLITERATION_PERFORMED = 1201
     SUCCESSFUL_PWD_CHANGE = 1900
     LOGIN_SUCCESSFUL = 1910
     SIGNUP_SUCCESSFUL = 1911
@@ -55,6 +56,7 @@ MESSAGES: dict[ResponseCode, str] = {
     ResponseCode.SUCCESSFUL_TRANSLITERATION_REMOVAL: "Successful transliteration removal",
     ResponseCode.SUCCESSFUL_TRANSLITERATIONS_REMOVAL: "Successful transliterations removal",
     ResponseCode.SUCCESSFUL_TRANSLITERATIONS_READING: "Successful transliteration reading",
+    ResponseCode.NO_TRANSLITERATION_PERFORMED: "No transliteration performed",
     ResponseCode.LOGIN_SUCCESSFUL:   "Login successful",
     ResponseCode.SIGNUP_SUCCESSFUL:   "Signup successful",
     ResponseCode.LOGOUT_SUCCESSFUL:   "Logout successful",

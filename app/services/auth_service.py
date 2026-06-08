@@ -214,7 +214,6 @@ def refresh(refresh_token: str, db: Session) -> TokenRefreshResponse:
         )
 
 def change_password(changePwd: ChangePassword, user: User, db: Session) -> SuccessfulPwdChange:
-
     if not user:
         logger.warning("Password change failed: user not found", extra={
             "user_id": user.id if user else None

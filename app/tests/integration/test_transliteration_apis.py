@@ -305,3 +305,55 @@ def test_transliteration_file_with_invalid_input(test_client, url):
     assert response.status_code == 422
 
 # ---------------------------------------------
+
+# Tests for get_user_transliteration_history
+
+def test_get_user_transliteration_history_success_auth_user(test_client, db, override_get_current_user):
+   # inserting test data into test DB
+    db.execute("""
+        INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
+        VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
+    """)
+    db.commit()
+
+    response = test_client.get("/v1/transliteration/me/history")
+    assert response.status_code == 200
+    
+    data = response.json()
+
+    assert "total" in data
+    assert "history" in data
+
+    assert data["total"] == 1
+    assert len(data["history"]) == 1
+
+    item = data["history"][0]
+
+    assert item["original_text"] == "Салам"
+    assert item["result_text"] == "Salam"
+    assert item["source_language"] == "az"
+    assert item["target_language"] == "az"
+    assert item["unrecognized_symbols"] == []
+    assert item["created_at"] is not None
+    assert item["status"] == 1
+    assert item["active"] is True
+
+
+def test_get_user_transliteration_history_auth_user_with_no_data(test_client, db, override_get_current_user):
+    response = test_client.get("/v1/transliteration/me/history")
+    assert response.status_code == 200
+    
+    data = response.json()
+
+    assert "total" in data
+    assert "history" in data
+
+    assert data["total"] == 0
+    assert len(data["history"]) == 0
+
+
+def test_get_user_transliteration_history_not_auth_user(test_client, db):
+    response = test_client.get("/v1/transliteration/me/history")
+    assert response.status_code == 401
+
+# --------------------------------------------------------------

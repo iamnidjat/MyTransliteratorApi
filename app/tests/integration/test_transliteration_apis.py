@@ -499,3 +499,61 @@ def test_delete_transliteration_history_non_auth_user(test_client, db):
 # --------------------------------------------------------------
 
 # Tests for delete_single_transliteration
+
+def test_delete_single_transliteration_success_auth_user(test_client, db, override_get_current_user):
+    # inserting test data into test DB
+    db.execute("""
+        INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
+        VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
+    """)
+    db.commit()
+
+    response = test_client.delete("/v1/transliteration/me/1")
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "data" in data
+    assert "original_text" in data["data"]
+    assert "result_text" in data["data"]
+    assert "unrecognized_symbols" in data["data"]
+    assert "done_at" in data["data"]
+    assert "status" in data["data"]
+    assert "user_id" in data["data"]
+
+    assert data["data"]["original_text"] == "Салам"
+    assert data["data"]["result_text"] == "Salam"
+    assert data["data"]["unrecognized_symbols"] == []
+    assert data["data"]["done_at"] is not None
+    assert data["data"]["status"] == 1
+    assert data["data"]["user_id"] == 1
+
+    row = db.execute("SELECT * FROM transliterations WHERE user_id = 1").fetchall()
+    assert len(row) == 0 
+
+
+def test_delete_single_transliteration_auth_user_with_no_data(test_client, db, override_get_current_user):
+    response = test_client.delete("/v1/transliteration/me/1")
+    assert response.status_code == 404
+
+
+def test_delete_single_transliteration_non_auth_user(test_client, db):
+    response = test_client.delete("/v1/transliteration/me/1")
+    assert response.status_code == 401
+
+
+def test_delete_single_transliteration_other_users_data(test_client, db, override_get_current_user):
+    # inserting record for another user (user_id = 2)
+    db.execute("""
+        INSERT INTO transliterations (
+            original_text, translated_text, source_language,
+            target_language, unrecognized_symbols,
+            created_at, status, active, user_id
+        )
+        VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 2)
+    """)
+    db.commit()
+
+    # override_get_current_user will return user with id 1, but the record belongs to user with id 2, so it should return 404
+    response = test_client.delete("/v1/transliteration/me/1")
+    assert response.status_code == 404

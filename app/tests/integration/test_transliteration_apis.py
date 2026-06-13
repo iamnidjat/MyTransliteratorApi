@@ -426,6 +426,66 @@ def test_get_user_transliteration_history_auth_user_invalid_page_size(test_clien
     assert response.status_code == 422
 
 
+def test_get_user_transliteration_history_user_isolation(test_client, db, override_get_current_user):
+    # USER A data
+    db.execute("""
+        INSERT INTO transliterations
+        (original_text, translated_text, source_language, target_language,
+         unrecognized_symbols, created_at, status, active, user_id)
+        VALUES ('A1', 'A1', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
+    """)
+
+    # USER B data
+    db.execute("""
+        INSERT INTO transliterations
+        (original_text, translated_text, source_language, target_language,
+         unrecognized_symbols, created_at, status, active, user_id)
+        VALUES ('B1', 'B1', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 2)
+    """)
+
+    db.commit()
+
+    response = test_client.get("/v1/transliteration/me/history")
+    assert response.status_code == 200
+
+    data = response.json()
+
+    # for user.id = 1
+    assert data["total"] == 1
+    assert len(data["history"]) == 1
+
+    assert data["history"][0]["original_text"] == "A1"
+
+
+def test__get_user_transliteration_history_filters_inactive_records(test_client, db, override_get_current_user):
+    db.execute("""
+        INSERT INTO transliterations
+        (original_text, translated_text, source_language, target_language,
+         unrecognized_symbols, created_at, status, active, user_id)
+        VALUES ('ACTIVE', 'ACTIVE', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
+    """)
+
+    db.execute("""
+        INSERT INTO transliterations
+        (original_text, translated_text, source_language, target_language,
+         unrecognized_symbols, created_at, status, active, user_id)
+        VALUES ('INACTIVE', 'INACTIVE', 'az', 'az', '[]'::jsonb, NOW(), 1, False, 1)
+    """)
+
+    db.commit()
+
+    response = test_client.get("/v1/transliteration/me/history")
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert len(data["history"]) == 1
+
+    assert data["history"][0]["original_text"] == "ACTIVE"
+    assert "INACTIVE" not in [x["original_text"] for x in data["history"]]
+
+
 def test_get_user_transliteration_history_auth_user_with_no_data(test_client, db, override_get_current_user):
     response = test_client.get("/v1/transliteration/me/history")
     assert response.status_code == 200
@@ -495,6 +555,23 @@ def test_delete_transliteration_history_auth_user_with_no_data(test_client, db, 
 def test_delete_transliteration_history_non_auth_user(test_client, db):
     response = test_client.delete("/v1/transliteration/me/all")
     assert response.status_code == 401
+
+
+def test_delete_transliteration_history_other_users_data(test_client, db, override_get_current_user):
+    # inserting record for another user (user_id = 2)
+    db.execute("""
+        INSERT INTO transliterations (
+            original_text, translated_text, source_language,
+            target_language, unrecognized_symbols,
+            created_at, status, active, user_id
+        )
+        VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 2)
+    """)
+    db.commit()
+
+    # override_get_current_user will return user with id 1, but the record belongs to user with id 2, so it should return 404
+    response = test_client.delete("/v1/transliteration/me/all")
+    assert response.status_code == 404
 
 # --------------------------------------------------------------
 

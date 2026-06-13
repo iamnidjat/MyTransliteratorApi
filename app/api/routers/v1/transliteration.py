@@ -1,5 +1,5 @@
 from app.core.rate_limiter import rate_limit_private, rate_limit_public
-from fastapi import APIRouter, Body, Depends, File, Path, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Path, Query, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.api.schemas.transliteration import TransliterationRequest, TransliterationHistoryListResponse
@@ -43,7 +43,8 @@ def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
                         message=result.response_message,
                         data={
                             "result_text": result.result_text,
-                            "unrecognized_symbols": result.unrecognized_symbols
+                            "unrecognized_symbols": result.unrecognized_symbols,
+                            "user_id": result.user_id
                         })
 
 @router.post("/az/latin-to-cyrillic", dependencies=[Depends(rate_limit_public)])
@@ -72,7 +73,8 @@ def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
                         message=result.response_message,
                         data={
                             "result_text": result.result_text,
-                            "unrecognized_symbols": result.unrecognized_symbols
+                            "unrecognized_symbols": result.unrecognized_symbols,
+                            "user_id": result.user_id
                         })
 
 
@@ -91,7 +93,8 @@ async def transliterate_cyrillic_to_latin_az_file(
                             message=result.response_message,
                             data={
                                 "result_text": result.result_text,
-                                "unrecognized_symbols": result.unrecognized_symbols
+                                "unrecognized_symbols": result.unrecognized_symbols,
+                                "user_id": result.user_id
                             })
 
 @router.post("/az/latin-to-cyrillic/file", dependencies=[Depends(rate_limit_public)])
@@ -109,7 +112,8 @@ async def transliterate_latin_to_cyrillic_az_file(
                             message=result.response_message,
                             data={
                                 "result_text": result.result_text,
-                                "unrecognized_symbols": result.unrecognized_symbols
+                                "unrecognized_symbols": result.unrecognized_symbols,
+                                "user_id": result.user_id
                             })
 
 
@@ -131,7 +135,7 @@ async def transliterate_latin_to_cyrillic_az_file(
     response_model=TransliterationHistoryListResponse,
     dependencies=[Depends(rate_limit_private)]
 )
-def user_transliteration_history(page: int = 1, page_size: int = 100,
+def user_transliteration_history(page: int = Query(1, ge=1), page_size: int = Query(100, ge=1, le=100),
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> TransliterationHistoryListResponse:
     return get_user_transliteration_history(page, page_size, current_user.id, db)
 
@@ -143,7 +147,8 @@ def remove_transliteration_history(current_user: User = Depends(get_current_user
                             message=result.response_message,
                             data={
                                 "done_at": result.done_at,
-                                "status": result.status
+                                "status": result.status,
+                                "user_id": result.user_id
                             })
 
 
@@ -159,6 +164,7 @@ def remove_single_transliteration(transliteration_id: int = Path(..., descriptio
                                 "original_text": result.original_text,
                                 "result_text": result.result_text,
                                 "unrecognized_symbols": result.unrecognized_symbols,
-                                "created_at": result.created_at,
+                                "done_at": result.done_at,
                                 "status": result.status,
+                                "user_id": result.user_id
                             })

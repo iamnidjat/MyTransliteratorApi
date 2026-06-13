@@ -23,6 +23,7 @@ class SuccessfulTransliterationCreation(BaseModel):
     unrecognized_symbols: list[str] = []
     created_at: datetime
     status: Literal[1, 2] = Field(..., description="1 = successfull, 2 = failed")
+    user_id: Optional[int] = None
 
 class SuccessfulTransliterationRemoval(BaseModel):
     original_text: str
@@ -32,12 +33,14 @@ class SuccessfulTransliterationRemoval(BaseModel):
     unrecognized_symbols: list[str] = []
     done_at: datetime
     status: Literal[1, 2] = Field(..., description="1 = successfull, 2 = failed")
+    user_id: int
 
 class SuccessfulTransliterationHistoryRemoval(BaseModel):
     response_code: int = 200 # default value
     response_message: str = "success"
     done_at: datetime
     status: Literal[1, 2] = Field(..., description="1 = successfull, 2 = failed")
+    user_id: int
 
 class TransliterationHistory(BaseModel):
     original_text: str
@@ -50,6 +53,7 @@ class TransliterationHistory(BaseModel):
     created_at: datetime
     status: Literal[1, 2] = Field(..., description="1 = successfull, 2 = failed")
     active: bool
+    user_id: int
 
 class TransliterationHistoryListResponse(BaseModel):
     total: int

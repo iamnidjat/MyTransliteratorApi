@@ -19,6 +19,7 @@ def get_active_by_user(page: int, page_size: int, user_id: int, db: Session):
             Transliteration.user_id == user_id,
             Transliteration.active == True
         )
+        .order_by(Transliteration.created_at.desc(), Transliteration.id.desc())
         .offset(offset)
         .limit(page_size)
         .all()

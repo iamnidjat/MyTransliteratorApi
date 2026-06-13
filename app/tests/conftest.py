@@ -70,6 +70,7 @@ def test_user():
         hashed_password="fakehashedpassword"
     )
 
+
 @pytest.fixture(scope="function")
 def override_get_optional_current_user(test_user):
     def _override():

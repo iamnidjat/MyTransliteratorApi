@@ -30,7 +30,8 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
             response_message=MESSAGES[ResponseCode.NO_TRANSLITERATION_PERFORMED],
             unrecognized_symbols=[],
             created_at=datetime.now(timezone.utc),
-            status=1
+            status=1,
+            user_id=current_user.id if current_user else None
         )
     
     result = []
@@ -62,6 +63,7 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
             created_at=datetime.now(timezone.utc),
             status=1,
             active=True,
+            user_id=current_user.id
         )
         
         create(transliteration, db)
@@ -74,7 +76,8 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
         response_message=MESSAGES[ResponseCode.SUCCESSFUL_TRANSLITERATION_CREATION],
         unrecognized_symbols=unrecognized,
         created_at=datetime.now(timezone.utc),
-        status=1
+        status=1,
+        user_id=current_user.id if current_user else None
     )
 
 def get_user_transliteration_history(page: int, page_size: int, user_id: int, db: Session) -> TransliterationHistoryListResponse:
@@ -115,6 +118,7 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
             created_at=t_history.created_at,
             status=t_history.status,
             active=t_history.active,
+            user_id=t_history.user_id,
             response_code=ResponseCode.SUCCESSFUL_TRANSLITERATION_REMOVAL,
             response_message=MESSAGES[ResponseCode.SUCCESSFUL_TRANSLITERATION_REMOVAL],
         ))
@@ -145,7 +149,8 @@ def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTrans
         response_code=ResponseCode.SUCCESSFUL_TRANSLITERATIONS_REMOVAL,
         response_message=MESSAGES[ResponseCode.SUCCESSFUL_TRANSLITERATIONS_REMOVAL],
         done_at=datetime.now(timezone.utc),
-        status=1
+        status=1,
+        user_id=user_id
     )
 
 def delete_single_transliteration(user_id: int, transliteration_id: int , db: Session) -> SuccessfulTransliterationRemoval:
@@ -166,7 +171,8 @@ def delete_single_transliteration(user_id: int, transliteration_id: int , db: Se
         response_message=MESSAGES[ResponseCode.SUCCESSFUL_TRANSLITERATION_REMOVAL],
         unrecognized_symbols=t_history.unrecognized_symbols,
         done_at=datetime.now(timezone.utc),
-        status=1
+        status=1,
+        user_id=user_id
     )
 
 def _invalidate_history_cache(user_id: int) -> None:

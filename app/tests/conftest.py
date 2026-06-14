@@ -63,11 +63,12 @@ def test_client(db: Session):
 
 @pytest.fixture
 def test_user():
+    from app.auth.security import hash_password
     return User(
         id=1,
-        name="Test User",
+        name="John123!",
         email="testuser@example.com",
-        hashed_password="fakehashedpassword"
+        hashed_password=hash_password("Strongpassword123!")
     )
 
 
@@ -100,8 +101,8 @@ def create_test_user(db):
     from app.auth.security import hash_password
     def _create_test_user(
             email="test@example.com",
-            name="test_user",
-            password="password123"
+            name="John123!",
+            password="Strongpassword123!"
         ):
         user = User(
             name=name,

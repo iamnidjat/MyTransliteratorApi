@@ -218,7 +218,7 @@ def change_password(changePwd: ChangePassword, user: User, db: Session) -> Succe
         logger.warning("Password change failed: user not found", extra={
             "user_id": user.id if user else None
         })
-        raise AppException(ResponseCode.INVALID_ACCOUNT, http_status=404)
+        raise AppException(ResponseCode.INVALID_ACCOUNT, http_status=401)
 
     if not verify_password(changePwd.pwd, user.hashed_password):
         logger.warning("Password change failed: invalid old password", extra={

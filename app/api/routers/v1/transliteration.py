@@ -38,14 +38,15 @@ def transliterate_cyrillic_to_latin_az(request: TransliterationRequest = Body(
         }
     ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     result = from_cyrillic_to_latin_az(request.text, current_user, db)
-    return custom_response(http_status=200,
-                        business_code=result.response_code,
-                        message=result.response_message,
-                        data={
-                            "result_text": result.result_text,
-                            "unrecognized_symbols": result.unrecognized_symbols,
-                            "user_id": result.user_id
-                        })
+    return custom_response(
+                    http_status=200,
+                    business_code=result.response_code,
+                    message=result.response_message,
+                    data={
+                        "result_text": result.result_text,
+                        "unrecognized_symbols": result.unrecognized_symbols,
+                        "user_id": result.user_id
+                    })
 
 @router.post("/az/latin-to-cyrillic", dependencies=[Depends(rate_limit_public)])
 def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
@@ -68,14 +69,15 @@ def transliterate_latin_to_cyrillic_az(request: TransliterationRequest = Body(
         }
     ), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     result = from_latin_to_cyrillic_az(request.text, current_user, db)
-    return custom_response(http_status=200,
-                        business_code=result.response_code,
-                        message=result.response_message,
-                        data={
-                            "result_text": result.result_text,
-                            "unrecognized_symbols": result.unrecognized_symbols,
-                            "user_id": result.user_id
-                        })
+    return custom_response(
+                    http_status=200,
+                    business_code=result.response_code,
+                    message=result.response_message,
+                    data={
+                        "result_text": result.result_text,
+                        "unrecognized_symbols": result.unrecognized_symbols,
+                        "user_id": result.user_id
+                    })
 
 
 @router.post("/az/cyrillic-to-latin/file", dependencies=[Depends(rate_limit_public)])
@@ -88,14 +90,15 @@ async def transliterate_cyrillic_to_latin_az_file(
     text = content.decode("utf-8")
 
     result = from_cyrillic_to_latin_az(text, current_user, db)
-    return custom_response(http_status=200,
-                            business_code=result.response_code,
-                            message=result.response_message,
-                            data={
-                                "result_text": result.result_text,
-                                "unrecognized_symbols": result.unrecognized_symbols,
-                                "user_id": result.user_id
-                            })
+    return custom_response(
+                    http_status=200,
+                    business_code=result.response_code,
+                    message=result.response_message,
+                    data={
+                        "result_text": result.result_text,
+                        "unrecognized_symbols": result.unrecognized_symbols,
+                        "user_id": result.user_id
+                    })
 
 @router.post("/az/latin-to-cyrillic/file", dependencies=[Depends(rate_limit_public)])
 async def transliterate_latin_to_cyrillic_az_file(
@@ -107,14 +110,15 @@ async def transliterate_latin_to_cyrillic_az_file(
     text = content.decode("utf-8")
 
     result = from_latin_to_cyrillic_az(text, current_user, db)
-    return custom_response(http_status=200,
-                            business_code=result.response_code,
-                            message=result.response_message,
-                            data={
-                                "result_text": result.result_text,
-                                "unrecognized_symbols": result.unrecognized_symbols,
-                                "user_id": result.user_id
-                            })
+    return custom_response(
+                    http_status=200,
+                    business_code=result.response_code,
+                    message=result.response_message,
+                    data={
+                        "result_text": result.result_text,
+                        "unrecognized_symbols": result.unrecognized_symbols,
+                        "user_id": result.user_id
+                    })
 
 
 # @router.get("/user_transliteration_history")
@@ -142,14 +146,15 @@ def user_transliteration_history(page: int = Query(1, ge=1), page_size: int = Qu
 @router.delete("/me/all", dependencies=[Depends(rate_limit_private)])
 def remove_transliteration_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
     result = delete_transliteration_history(current_user.id, db)
-    return custom_response(http_status=200,
-                            business_code=result.response_code,
-                            message=result.response_message,
-                            data={
-                                "done_at": result.done_at,
-                                "status": result.status,
-                                "user_id": result.user_id
-                            })
+    return custom_response(
+                    http_status=200,
+                    business_code=result.response_code,
+                    message=result.response_message,
+                    data={
+                        "done_at": result.done_at,
+                        "status": result.status,
+                        "user_id": result.user_id
+                    })
 
 
 @router.delete("/me/{transliteration_id}", dependencies=[Depends(rate_limit_private)])
@@ -157,14 +162,15 @@ def remove_single_transliteration(transliteration_id: int = Path(..., descriptio
                                 current_user: User = Depends(get_current_user),                                 
                                 db: Session = Depends(get_db)) -> JSONResponse:
     result = delete_single_transliteration(current_user.id, transliteration_id, db)
-    return custom_response(http_status=200,
-                            business_code=result.response_code,
-                            message=result.response_message,
-                            data={
-                                "original_text": result.original_text,
-                                "result_text": result.result_text,
-                                "unrecognized_symbols": result.unrecognized_symbols,
-                                "done_at": result.done_at,
-                                "status": result.status,
-                                "user_id": result.user_id
-                            })
+    return custom_response(
+                    http_status=200,
+                    business_code=result.response_code,
+                    message=result.response_message,
+                    data={
+                        "original_text": result.original_text,
+                        "result_text": result.result_text,
+                        "unrecognized_symbols": result.unrecognized_symbols,
+                        "done_at": result.done_at,
+                        "status": result.status,
+                        "user_id": result.user_id
+                    })

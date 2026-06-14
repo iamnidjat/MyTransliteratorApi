@@ -93,3 +93,25 @@ def override_get_current_user(test_user):
     yield
 
     app.dependency_overrides.pop(get_current_user, None)
+
+
+@pytest.fixture
+def create_test_user(db):
+    from app.auth.security import hash_password
+    def _create_test_user(
+            email="test@example.com",
+            name="user_test",
+            password="password123"
+        ):
+        user = User(
+            name=name,
+            email=email,
+            hashed_password=hash_password(password)
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
+        return user
+
+    return _create_test_user

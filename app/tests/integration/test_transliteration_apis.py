@@ -1,5 +1,3 @@
-from unittest import result
-
 import pytest
 
 # Tests for normal input
@@ -486,7 +484,7 @@ def test__get_user_transliteration_history_filters_inactive_records(test_client,
     assert "INACTIVE" not in [x["original_text"] for x in data["history"]]
 
 
-def test_get_user_transliteration_history_auth_user_with_no_data(test_client, db, override_get_current_user):
+def test_get_user_transliteration_history_auth_user_with_no_data(test_client, override_get_current_user):
     response = test_client.get("/v1/transliteration/me/history")
     assert response.status_code == 200
     
@@ -552,7 +550,7 @@ def test_delete_transliteration_history_auth_user_with_no_data(test_client, db, 
     assert len(row) == 0 
 
 
-def test_delete_transliteration_history_non_auth_user(test_client, db):
+def test_delete_transliteration_history_non_auth_user(test_client):
     response = test_client.delete("/v1/transliteration/me/all")
     assert response.status_code == 401
 
@@ -609,12 +607,12 @@ def test_delete_single_transliteration_success_auth_user(test_client, db, overri
     assert len(row) == 0 
 
 
-def test_delete_single_transliteration_auth_user_with_no_data(test_client, db, override_get_current_user):
+def test_delete_single_transliteration_auth_user_with_no_data(test_client, override_get_current_user):
     response = test_client.delete("/v1/transliteration/me/1")
     assert response.status_code == 404
 
 
-def test_delete_single_transliteration_non_auth_user(test_client, db):
+def test_delete_single_transliteration_non_auth_user(test_client):
     response = test_client.delete("/v1/transliteration/me/1")
     assert response.status_code == 401
 
@@ -624,7 +622,7 @@ def test_delete_single_transliteration_other_users_data(test_client, db, overrid
     db.execute("""
         INSERT INTO transliterations (
             original_text, translated_text, source_language,
-            target_language, unrecognized_symbols,
+            target_language, unrecognized_symbols,66
             created_at, status, active, user_id
         )
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 2)

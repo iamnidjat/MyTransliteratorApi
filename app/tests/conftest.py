@@ -100,7 +100,7 @@ def create_test_user(db):
     from app.auth.security import hash_password
     def _create_test_user(
             email="test@example.com",
-            name="user_test",
+            name="test_user",
             password="password123"
         ):
         user = User(
@@ -111,7 +111,7 @@ def create_test_user(db):
         db.add(user)
         db.commit()
         db.refresh(user)
-        
+
         return user
 
     return _create_test_user

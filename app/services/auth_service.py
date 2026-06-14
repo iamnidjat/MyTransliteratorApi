@@ -28,7 +28,7 @@ load_dotenv()
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 
 def authenticate(loginCredentials: Login,  db: Session) -> SuccessfulAuthentication:
-    user = db.query(User).filter(User.email == loginCredentials.username).first()
+    user = db.query(User).filter(User.name == loginCredentials.username).first()
 
     if not user:
         # raise AppException(ResponseCode.USER_NOT_FOUND, http_status=404)

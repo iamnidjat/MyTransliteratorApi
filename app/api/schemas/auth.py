@@ -33,7 +33,6 @@ class SignUp(BaseModel):
         examples=["youremail@gmail.com"]
     )
 
-
     @field_validator("username")
     def check_username(cls, v):
         if not any(c.isupper() for c in v):

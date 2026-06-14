@@ -158,7 +158,7 @@ def remove_transliteration_history(current_user: User = Depends(get_current_user
 
 
 @router.delete("/me/{transliteration_id}", dependencies=[Depends(rate_limit_private)])
-def remove_single_transliteration(transliteration_id: int = Path(..., description="transliteration id", example=1), 
+def remove_single_transliteration(transliteration_id: int = Path(..., description="transliteration id", examples=[1]), 
                                 current_user: User = Depends(get_current_user),                                 
                                 db: Session = Depends(get_db)) -> JSONResponse:
     result = delete_single_transliteration(current_user.id, transliteration_id, db)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
 
 
@@ -6,31 +6,53 @@ class Login(BaseModel):
     username: str = Field(
         ...,
         description="Enter your username",
-        example="youremail@gmail.com"
     )
     password: str = Field(
         ...,
         description="Enter your password",
-        example="strongpassword123"
     )
 
 class SignUp(BaseModel):
     username: str = Field(
         ...,
+        min_length=5,
+        max_length=20,
         description="Make up username",
-        example="john_doe"
+        # example="John123!" deprecated, v1 style
+        examples=["John123!"]
     )
     password: str = Field(
         ...,
         min_length=6,
         description="Make up password",
-        example="strongpassword123"
+        examples=["Strongpassword123!"]
     )
     email: EmailStr = Field(
         ...,
         description="Enter your email",
-        example="youremail@gmail.com"
+        examples=["youremail@gmail.com"]
     )
+
+
+    @field_validator("username")
+    def check_username(cls, v):
+        if not any(c.isupper() for c in v):
+            raise ValueError("Username must contain at least 1 uppercase letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Username must contain at least 1 number")
+        if not any(c in "!@#$%^&*" for c in v):
+            raise ValueError("Username must contain at least 1 symbol")
+        return v
+    
+    @field_validator("password")
+    def check_password(cls, v):
+        if not any(c.isupper() for c in v):
+            raise ValueError("Password must contain at least 1 uppercase letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least 1 number")
+        if not any(c in "!@#$%^&*" for c in v):
+            raise ValueError("Password must contain at least 1 symbol")
+        return v
 
 class Logout(BaseModel):
     pass
@@ -63,7 +85,7 @@ class ChangePassword(BaseModel):
         ...,
         min_length=6,
         description="Make up new password",
-        example="strongpassword123"
+        examples=["Newstrongpassword123!"]
     )
 
 class TokenRefreshResponse(BaseModel):

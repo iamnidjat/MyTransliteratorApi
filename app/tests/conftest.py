@@ -116,3 +116,18 @@ def create_test_user(db):
         return user
 
     return _create_test_user
+
+
+@pytest.fixture
+def auth_user_with_cookie(test_client, create_test_user):
+    create_test_user()
+
+    response = test_client.post("/v1/auth/login", json={
+        "username": "John123!",
+        "password": "Strongpassword123!"
+    })
+
+    refresh_token = response.cookies.get("refresh_token")
+
+    return refresh_token
+    

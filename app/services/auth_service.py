@@ -111,7 +111,7 @@ def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
             logger.info("No refresh tokens found", extra={
                 "user_id": user_id
             })
-            return ResponseCode.LOGIN_SUCCESSFUL # No tokens found — still okay to logout  
+            return ResponseCode.LOGOUT_SUCCESSFUL # No tokens found — still okay to logout  
 
         logger.info("Revoking refresh tokens", extra={
             "user_id": user_id,
@@ -121,7 +121,7 @@ def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
             soft_delete(token)
         
         db.commit()
-        return ResponseCode.LOGIN_SUCCESSFUL
+        return ResponseCode.LOGOUT_SUCCESSFUL
     except SQLAlchemyError as e:
         db.rollback()  # undo changes if something fails
         logger.exception("Error revoking refresh tokens", extra={

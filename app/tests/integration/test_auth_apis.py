@@ -8,8 +8,8 @@ def test_login_success(test_client, create_test_user):
     create_test_user()
 
     response = test_client.post("/v1/auth/login", json={
-        "username": "test_user",
-        "password": "password123",
+        "username": "John123!",
+        "password": "Strongpassword123!",
     })
 
     assert response.status_code == 200
@@ -31,8 +31,8 @@ def test_login_user_not_found(test_client, create_test_user):
     # create_test_user() could be either used or not used
 
     response = test_client.post("/v1/auth/login", json={
-        "username": "not_found_user",
-        "password": "password123",
+        "username": "John1234!",
+        "password": "Strongpassword123!",
     })
 
     assert response.status_code == 401
@@ -45,8 +45,8 @@ def test_login_wrong_password(test_client, create_test_user):
     create_test_user()
 
     response = test_client.post("/v1/auth/login", json={
-        "username": "test_user",
-        "password": "password1234",
+        "username": "John123!",
+        "password": "Strongpassword1234!",
     })
 
     assert response.status_code == 401
@@ -188,3 +188,69 @@ def test_change_password_not_auth_user(test_client):
     assert response.status_code == 401
 
 # ------------------------------------------------------------------
+
+# Tests for refresh token
+
+def test_refresh_success(test_client, auth_user_with_cookie):
+    response = test_client.post(
+        "/v1/auth/refresh",
+        cookies={"refresh_token": auth_user_with_cookie}
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "access_token" in data
+    assert data["token_type"] == "Bearer"
+    assert "refresh_token" in response.cookies
+
+
+def test_refresh_no_cookie(test_client):
+    response = test_client.post("/v1/auth/refresh")
+
+    assert response.status_code == 401
+
+    data = response.json()
+
+    assert data["business_code"] == ResponseCode.NO_TOKEN_PROVIDED
+
+
+def test_refresh_invalid_token(test_client):
+    response = test_client.post(
+        "/v1/auth/refresh",
+        cookies={"refresh_token": "invalid_token"}
+    )
+
+    assert response.status_code == 401
+
+    data = response.json()
+
+    assert data["business_code"] == ResponseCode.INVALID_TOKEN
+
+
+def test_refresh_token_rotation(test_client, auth_user_with_cookie):
+    old_token = auth_user_with_cookie
+
+    response = test_client.post(
+        "/v1/auth/refresh",
+        cookies={"refresh_token": old_token}
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "access_token" in data
+    assert data["token_type"] == "Bearer"
+    assert "refresh_token" in response.cookies
+
+    # second call, should fail
+    response2 = test_client.post(
+        "/v1/auth/refresh",
+        cookies={"refresh_token": old_token}
+    )
+
+    assert response2.status_code == 401
+    data2 = response2.json()
+    assert data2["business_code"] == ResponseCode.INVALID_TOKEN

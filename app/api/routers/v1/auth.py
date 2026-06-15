@@ -85,7 +85,7 @@ def refresh_token(request: Request, db: Session = Depends(get_db)) -> JSONRespon
 
     response = {
         "access_token": token.access_token,
-        "token_type": "bearer"
+        "token_type": "Bearer"
     }
 
     # sends new refresh token as cookie again

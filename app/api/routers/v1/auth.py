@@ -61,12 +61,12 @@ def register(request: SignUp, response: Response, db: Session = Depends(get_db))
     
 @router.post("/logout", dependencies=[Depends(rate_limit_private)])
 def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
-    revoke_user_tokens(current_user.id, db)
+    code = revoke_user_tokens(current_user.id, db)
 
     return custom_response(
         http_status=200,
-        business_code=ResponseCode.LOGOUT_SUCCESSFUL,
-        message=MESSAGES[ResponseCode.LOGOUT_SUCCESSFUL],
+        business_code=code,
+        message=MESSAGES[code],
         data=None
     )
 

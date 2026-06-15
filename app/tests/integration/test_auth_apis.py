@@ -118,6 +118,25 @@ def test_signup_invalid_input(test_client, payload):
 
 # ------------------------------------------------------------------
 
+# Tests for logout
+
+def test_logout_success_auth_user(test_client, override_get_current_user):
+    response = test_client.post("/v1/auth/logout")
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "data" in data
+    assert data["data"] is None
+    assert data["business_code"] == ResponseCode.LOGOUT_SUCCESSFUL
+
+
+def test_logout_not_auth_user(test_client):
+    response = test_client.post("/v1/auth/logout")
+    assert response.status_code == 401
+
+# ------------------------------------------------------------------
+
 # Tests for change password
 
 def test_change_password_success_auth_user(test_client, override_get_current_user):

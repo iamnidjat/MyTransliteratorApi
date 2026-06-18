@@ -33,7 +33,6 @@
 - PostgreSQL via SQLAlchemy ORM
 - Redis via Docker
 - Fully containerized with Docker Compose (PostgreSQL + Redis + API)
-- Async SQLAlchemy + aioredis replacing all synchronous DB and cache calls *(in progress)*
 - GitHub Actions CI — unit tests run automatically on every push *(in progress)*
 
 ---

@@ -59,7 +59,10 @@ def get_optional_current_user(
     
     token = credentials.credentials 
 
-    payload = decode_token(token)
+    try:
+        payload = verify_token(token)
+    except HTTPException:
+        return None
 
     if payload.get("type") != "access":
         return None

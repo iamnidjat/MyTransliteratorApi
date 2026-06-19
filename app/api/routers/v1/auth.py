@@ -1,3 +1,5 @@
+from fastapi.security import HTTPAuthorizationCredentials
+from auth.dependencies import security
 from app.core.rate_limiter import rate_limit_auth, rate_limit_private
 from fastapi import APIRouter, Body, Depends, Request, Response
 from fastapi.responses import JSONResponse
@@ -60,8 +62,10 @@ def register(request: SignUp, response: Response, db: Session = Depends(get_db))
     return response
     
 @router.post("/logout", dependencies=[Depends(rate_limit_private)])
-def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> JSONResponse:
-    code = revoke_user_tokens(current_user.id, db)
+def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db), credentials: HTTPAuthorizationCredentials = Depends(security),) -> JSONResponse:
+    token = credentials.credentials
+
+    code = revoke_user_tokens(current_user.id, token, db)
 
     return custom_response(
         http_status=200,
@@ -69,7 +73,6 @@ def logout(current_user: User = Depends(get_current_user), db: Session = Depends
         message=MESSAGES[code],
         data=None
     )
-
 
 @router.post("/refresh", dependencies=[Depends(rate_limit_private)])
 def refresh_token(request: Request, db: Session = Depends(get_db)) -> JSONResponse:

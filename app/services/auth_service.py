@@ -10,6 +10,7 @@ from app.core.models import User
 from passlib.context import CryptContext
 
 from app.core.models.refresh_token import RefreshToken
+from auth.jwt_based_blacklist import blacklist
 from app.exceptions.handlers import AppException
 from app.repositories.auth_repository import create_user, create_token, soft_delete
 from app.utils.custom_response_codes import MESSAGES, ResponseCode
@@ -99,8 +100,9 @@ def generate_auth_response(user: User) -> Authenticate:
         )
     )
 
-def logout(user_id: int, db: Session) -> ResponseCode:
+def logout(user_id: int, token: str, db: Session) -> ResponseCode:
     logger.info("Logging out user", extra={"user_id": user_id})
+    blacklist_access_token(token)
     return revoke_refresh_token(user_id, db)
 
 def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
@@ -131,6 +133,18 @@ def revoke_refresh_token(user_id: int, db: Session) -> ResponseCode:
             ResponseCode.SERVER_ERROR,
             http_status=500
         )
+
+def blacklist_access_token(token: str) -> None:
+    payload = decode_token(token)
+
+    jti = payload["jti"]
+    exp = payload["exp"]
+
+    # calculate remaining lifetime
+    ttl = exp - int(datetime.now(timezone.utc).timestamp())
+
+    if ttl > 0:
+        blacklist(jti, ttl) 
 
 def save_refresh_token(user_id: int, token: str, db: Session) -> ResponseCode:
     try:

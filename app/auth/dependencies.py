@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app.auth.jwt_handler import decode_token
+from app.auth.jwt_handler import decode_token, verify_token
 from app.core.database import get_db
 from app.core.models import User
 
@@ -18,7 +18,7 @@ def get_current_user(
 ) -> User:
     token = credentials.credentials
 
-    payload = decode_token(token)
+    payload = verify_token(token)
 
     if payload.get("type") != "access":
         raise HTTPException(

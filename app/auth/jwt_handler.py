@@ -1,9 +1,11 @@
 import secrets
 import os
 from datetime import datetime, timedelta, timezone
+import uuid
 from fastapi import HTTPException, status
-from jose import jwt, JWTError
+from jose import ExpiredSignatureError, jwt, JWTError
 from dotenv import load_dotenv
+from auth.jwt_based_blacklist import is_token_blacklisted
 
 load_dotenv()
 
@@ -20,6 +22,7 @@ def create_access_token(data: dict):
         "exp": expire,
         "iat": now, # issued at
         "type": "access",
+        "jti": str(uuid.uuid4())
     })
     return jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
@@ -29,8 +32,32 @@ def create_refresh_token():
 def decode_token(token: str):
     try:
         return jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired"
+        )
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail="Invalid token",
         )
+    
+def verify_token(token: str):
+    payload = decode_token(token)
+
+    jti = payload.get("jti")
+
+    if not jti:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token structure"
+        )
+
+    if is_token_blacklisted(jti):
+        raise HTTPException(
+            status_code=401,
+            detail="Token has been revoked (logout or banned)"
+        )
+
+    return payload

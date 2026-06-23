@@ -63,7 +63,6 @@ def _transliterate(text: str, mapping_lower: dict[str, str], mapping_upper: dict
             created_at=datetime.now(timezone.utc),
             status=1,
             active=True,
-            user_id=current_user.id
         )
         
         create(transliteration, db)
@@ -99,7 +98,7 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
    # start_db = time.time()
     logger.info(f"Redis cache MISS: {cache_key}")
     logger.info(f"Fetching history from DB user_id={user_id}")
-    t_histories = get_active_by_user(page, page_size, user_id, db)
+    t_histories = get_active_by_user(page=page, page_size=page_size, user_id=user_id, db=db)
     t_histories_length = get_active_by_user_count(user_id, db)
    # db_time = time.time() - start_db
    # print(f"DB fetch time: {db_time:.6f}s")
@@ -136,7 +135,7 @@ def get_user_transliteration_history(page: int, page_size: int, user_id: int, db
     return response
 
 def delete_transliteration_history(user_id: int, db: Session) -> SuccessfulTransliterationHistoryRemoval:
-    t_histories = get_active_by_user(user_id, db)
+    t_histories = get_active_by_user(user_id=user_id, db=db)
 
     logger.info(f"Soft delete all history user_id={user_id}")
     for t_history in t_histories:

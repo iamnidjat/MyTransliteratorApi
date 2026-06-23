@@ -47,7 +47,7 @@
 | Auth | JWT (python-jose) + bcrypt |
 | Validation | Pydantic v2 (EmailStr, field constraints) |
 | Logging | Python `logging` + RotatingFileHandler |
-| Rate Limiting | slowapi |
+| Rate Limiting | Redis |
 | Containerization | Docker + Docker Compose |
 
 ---
@@ -67,7 +67,7 @@ docker-compose down
 
 API: [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
-Swagger docs: [http://127.0.0.1:8080/docs](http://127.0.0.1:8080/docs)
+Swagger docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ---
 

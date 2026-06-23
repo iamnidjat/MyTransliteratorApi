@@ -11,19 +11,21 @@ def create(transliteration: Transliteration, db: Session):
 def save(db: Session):
     db.commit()
 
-def get_active_by_user(page: int, page_size: int, user_id: int, db: Session):
-    offset = (page - 1) * page_size
-    return (
+def get_active_by_user(user_id: int, db: Session, page: int | None = None, page_size: int | None = None):
+    query = (
         db.query(Transliteration)
         .filter(
             Transliteration.user_id == user_id,
             Transliteration.active == True
         )
         .order_by(Transliteration.created_at.desc(), Transliteration.id.desc())
-        .offset(offset)
-        .limit(page_size)
-        .all()
     )
+
+    if page is not None and page_size is not None:
+        offset = (page - 1) * page_size
+        query = query.offset(offset).limit(page_size)
+    
+    return query.all()
 
 def get_active_by_user_count(user_id: int, db: Session):
     total = (

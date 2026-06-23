@@ -151,7 +151,7 @@ def remove_transliteration_history(current_user: User = Depends(get_current_user
                     business_code=result.response_code,
                     message=result.response_message,
                     data={
-                        "done_at": result.done_at,
+                        "done_at": result.done_at.isoformat(),
                         "status": result.status,
                         "user_id": result.user_id
                     })
@@ -170,7 +170,7 @@ def remove_single_transliteration(transliteration_id: int = Path(..., descriptio
                         "original_text": result.original_text,
                         "result_text": result.result_text,
                         "unrecognized_symbols": result.unrecognized_symbols,
-                        "done_at": result.done_at,
+                        "done_at": result.done_at.isoformat(),
                         "status": result.status,
                         "user_id": result.user_id
                     })

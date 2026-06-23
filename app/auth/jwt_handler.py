@@ -5,7 +5,7 @@ import uuid
 from fastapi import HTTPException, status
 from jose import ExpiredSignatureError, jwt, JWTError
 from dotenv import load_dotenv
-from auth.jwt_based_blacklist import is_token_blacklisted
+from app.auth.jwt_based_blacklist import is_token_blacklisted
 
 load_dotenv()
 

@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import text
 
 # Tests for normal input
 
@@ -24,7 +25,7 @@ def test_transliteration_success_auth_user(test_client, db, override_get_optiona
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == []
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 1
 
 
@@ -50,15 +51,15 @@ def test_transliteration_success_anonymous_user(test_client, db, url, input_text
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == []
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 0
 
 
 @pytest.mark.parametrize(
         "url, input_text, expected_result_text, unrecognized_symbols", 
         [
-            ("/v1/transliteration/az/cyrillic-to-latin", "Салам#", "Salam?", ["#"]),
-            ("/v1/transliteration/az/latin-to-cyrillic", "Salam#", "Салам?", ["#"])
+            ("/v1/transliteration/az/cyrillic-to-latin", "Саламβ", "Salam?", ["β"]),
+            ("/v1/transliteration/az/latin-to-cyrillic", "Salamβ", "Салам?", ["β"])
         ]
     )
 def test_transliteration_success_with_unknown_symbol_auth_user(test_client, db, override_get_optional_current_user, url, input_text, expected_result_text, unrecognized_symbols):
@@ -76,15 +77,41 @@ def test_transliteration_success_with_unknown_symbol_auth_user(test_client, db, 
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == unrecognized_symbols
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 1
 
 
 @pytest.mark.parametrize(
         "url, input_text, expected_result_text, unrecognized_symbols", 
         [
-            ("/v1/transliteration/az/cyrillic-to-latin", "Салам#", "Salam?", ["#"]),
-            ("/v1/transliteration/az/latin-to-cyrillic", "Salam#", "Салам?", ["#"])
+            ("/v1/transliteration/az/cyrillic-to-latin", "Салам#", "Salam#", []),
+            ("/v1/transliteration/az/latin-to-cyrillic", "Salam#", "Салам#", [])
+        ]
+    )
+def test_transliteration_success_with_non_alpha_symbol_auth_user(test_client, db, override_get_optional_current_user, url, input_text, expected_result_text, unrecognized_symbols):
+    response = test_client.post(url, json={"text": input_text})
+    assert response.status_code == 200
+
+    data = response.json()
+
+    # checking the structure of the response
+    assert "data" in data
+    assert "result_text" in data["data"]
+    assert "unrecognized_symbols" in data["data"]
+
+    # checking the content of the response 
+    assert data["data"]["result_text"] == expected_result_text
+    assert data["data"]["unrecognized_symbols"] == unrecognized_symbols
+
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
+    assert len(rows) == 1
+
+
+@pytest.mark.parametrize(
+        "url, input_text, expected_result_text, unrecognized_symbols", 
+        [
+            ("/v1/transliteration/az/cyrillic-to-latin", "Саламβ", "Salam?", ["β"]),
+            ("/v1/transliteration/az/latin-to-cyrillic", "Salamβ", "Салам?", ["β"])
         ]
     )
 def test_transliteration_success_with_unknown_symbol_anonymous_user(test_client, db, url, input_text, expected_result_text, unrecognized_symbols):
@@ -102,7 +129,33 @@ def test_transliteration_success_with_unknown_symbol_anonymous_user(test_client,
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == unrecognized_symbols
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
+    assert len(rows) == 0
+
+
+@pytest.mark.parametrize(
+        "url, input_text, expected_result_text, unrecognized_symbols", 
+        [
+            ("/v1/transliteration/az/cyrillic-to-latin", "Салам#", "Salam#", []),
+            ("/v1/transliteration/az/latin-to-cyrillic", "Salam#", "Салам#", [])
+        ]
+    )
+def test_transliteration_success_with_non_alpha_symbol_anonymous_user(test_client, db, url, input_text, expected_result_text, unrecognized_symbols):
+    response = test_client.post(url, json={"text": input_text})
+    assert response.status_code == 200
+
+    data = response.json()
+
+    # checking the structure of the response
+    assert "data" in data
+    assert "result_text" in data["data"]
+    assert "unrecognized_symbols" in data["data"]
+
+    # checking the content of the response 
+    assert data["data"]["result_text"] == expected_result_text
+    assert data["data"]["unrecognized_symbols"] == unrecognized_symbols
+
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 0
 
 
@@ -129,7 +182,7 @@ def test_transliteration_with_empty_text(test_client, db, url, input_text, expec
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == []
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 0
 
 
@@ -180,7 +233,7 @@ def test_transliteration_file_success_auth_user(test_client, db, override_get_op
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == []
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 1
 
 
@@ -207,15 +260,15 @@ def test_transliteration_file_success_anonymous_user(test_client, db, url, input
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == []
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 0
 
 
 @pytest.mark.parametrize(
         "url, input_text, expected_result_text, unrecognized_symbols", 
         [
-            ("/v1/transliteration/az/cyrillic-to-latin/file", "Салам#", "Salam?", ["#"]),
-            ("/v1/transliteration/az/latin-to-cyrillic/file", "Salam#", "Салам?", ["#"])
+            ("/v1/transliteration/az/cyrillic-to-latin/file", "Саламβ", "Salam?", ["β"]),
+            ("/v1/transliteration/az/latin-to-cyrillic/file", "Salamβ", "Салам?", ["β"])
         ]
     )
 def test_transliteration_file_success_with_unknown_symbol_auth_user(test_client, db, override_get_optional_current_user, url, input_text, expected_result_text, unrecognized_symbols):
@@ -234,15 +287,43 @@ def test_transliteration_file_success_with_unknown_symbol_auth_user(test_client,
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == unrecognized_symbols
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 1
 
 
 @pytest.mark.parametrize(
         "url, input_text, expected_result_text, unrecognized_symbols", 
         [
-            ("/v1/transliteration/az/cyrillic-to-latin/file", "Салам#", "Salam?", ["#"]),
-            ("/v1/transliteration/az/latin-to-cyrillic/file", "Salam#", "Салам?", ["#"])
+            ("/v1/transliteration/az/cyrillic-to-latin/file", "Салам#", "Salam#", []),
+            ("/v1/transliteration/az/latin-to-cyrillic/file", "Salam#", "Салам#", [])
+        ]
+    )
+def test_transliteration_file_success_with_non_alpha_symbol_auth_user(test_client, db, override_get_optional_current_user, url, input_text, expected_result_text, unrecognized_symbols):
+    file_content = input_text.encode("utf-8")
+    response = test_client.post(url, files = {"file": ("test.txt", file_content, "text/plain")})
+    assert response.status_code == 200
+
+    data = response.json()
+
+    # checking the structure of the response
+    assert "data" in data
+    assert "result_text" in data["data"]
+    assert "unrecognized_symbols" in data["data"]
+
+    # checking the content of the response 
+    assert data["data"]["result_text"] == expected_result_text
+    assert data["data"]["unrecognized_symbols"] == unrecognized_symbols
+
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
+    assert len(rows) == 1
+
+
+
+@pytest.mark.parametrize(
+        "url, input_text, expected_result_text, unrecognized_symbols", 
+        [
+            ("/v1/transliteration/az/cyrillic-to-latin/file", "Саламβ", "Salam?", ["β"]),
+            ("/v1/transliteration/az/latin-to-cyrillic/file", "Salamβ", "Салам?", ["β"])
         ]
     )
 def test_transliteration_file_success_with_unknown_symbol_anonymous_user(test_client, db, url, input_text, expected_result_text, unrecognized_symbols):
@@ -261,7 +342,34 @@ def test_transliteration_file_success_with_unknown_symbol_anonymous_user(test_cl
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == unrecognized_symbols
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
+    assert len(rows) == 0
+
+
+@pytest.mark.parametrize(
+        "url, input_text, expected_result_text, unrecognized_symbols", 
+        [
+            ("/v1/transliteration/az/cyrillic-to-latin/file", "Салам#", "Salam#", []),
+            ("/v1/transliteration/az/latin-to-cyrillic/file", "Salam#", "Салам#", [])
+        ]
+    )
+def test_transliteration_file_success_with_non_alpha_symbol_anonymous_user(test_client, db, url, input_text, expected_result_text, unrecognized_symbols):
+    file_content = input_text.encode("utf-8")
+    response = test_client.post(url, files = {"file": ("test.txt", file_content, "text/plain")})
+    assert response.status_code == 200
+
+    data = response.json()
+
+    # checking the structure of the response
+    assert "data" in data
+    assert "result_text" in data["data"]
+    assert "unrecognized_symbols" in data["data"]
+
+    # checking the content of the response 
+    assert data["data"]["result_text"] == expected_result_text
+    assert data["data"]["unrecognized_symbols"] == unrecognized_symbols
+
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 0
 
 
@@ -289,7 +397,7 @@ def test_transliteration_file_with_empty_text(test_client, db, url, input_text, 
     assert data["data"]["result_text"] == expected_result_text
     assert data["data"]["unrecognized_symbols"] == []
 
-    rows = db.execute("SELECT * FROM transliterations").fetchall()
+    rows = db.execute(text("SELECT * FROM transliterations")).fetchall()
     assert len(rows) == 0
 
 
@@ -310,10 +418,10 @@ def test_transliteration_file_with_invalid_input(test_client, url):
 
 def test_get_user_transliteration_history_success_auth_user(test_client, db, override_get_current_user):
    # inserting test data into test DB
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-    """)
+    """))
     db.commit()
 
     response = test_client.get("/v1/transliteration/me/history")
@@ -343,10 +451,10 @@ def test_get_user_transliteration_history_success_auth_user(test_client, db, ove
 def test_get_user_transliteration_history_success_auth_user_custom_range(test_client, db, override_get_current_user):
     for i in range(5):
         # inserting test data into test DB
-        db.execute("""
+        db.execute(text("""
             INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
-            VALUES (original_text, translated_text, 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-        """, {
+            VALUES (:original_text, :translated_text, 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
+        """), {
         "original_text": f"Салам {i}",
         "translated_text": f"Salam {i}",
     })
@@ -379,10 +487,10 @@ def test_get_user_transliteration_history_success_auth_user_custom_range(test_cl
 
 def test_get_user_transliteration_history_auth_user_page_out_of_range(test_client, db, override_get_current_user):
    # inserting test data into test DB
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-    """)
+    """))
     db.commit()
 
     response = test_client.get("/v1/transliteration/me/history", params={"page": 2, "page_size": 10})
@@ -402,10 +510,10 @@ def test_get_user_transliteration_history_auth_user_page_out_of_range(test_clien
 
 def test_get_user_transliteration_history_auth_user_invalid_page(test_client, db, override_get_current_user):
    # inserting test data into test DB
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-    """)
+    """))
     db.commit()
 
     response = test_client.get("/v1/transliteration/me/history", params={"page": 0, "page_size": 10})
@@ -414,32 +522,38 @@ def test_get_user_transliteration_history_auth_user_invalid_page(test_client, db
 
 def test_get_user_transliteration_history_auth_user_invalid_page_size(test_client, db, override_get_current_user):
    # inserting test data into test DB
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-    """)
+    """))
     db.commit()
 
     response = test_client.get("/v1/transliteration/me/history", params={"page": 1, "page_size": 1000})
     assert response.status_code == 422
 
 
-def test_get_user_transliteration_history_user_isolation(test_client, db, override_get_current_user):
+def test_get_user_transliteration_history_user_isolation(test_client, db, override_get_current_user, create_test_user):
     # USER A data
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations
         (original_text, translated_text, source_language, target_language,
          unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('A1', 'A1', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-    """)
+    """))
 
+    userB = create_test_user(
+            id=2,
+            email="test2@example.com",
+            name="John1234!",
+            password="Strongpassword1234!")
+    
     # USER B data
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations
         (original_text, translated_text, source_language, target_language,
          unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('B1', 'B1', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 2)
-    """)
+    """))
 
     db.commit()
 
@@ -456,19 +570,19 @@ def test_get_user_transliteration_history_user_isolation(test_client, db, overri
 
 
 def test__get_user_transliteration_history_filters_inactive_records(test_client, db, override_get_current_user):
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations
         (original_text, translated_text, source_language, target_language,
          unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('ACTIVE', 'ACTIVE', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-    """)
+    """))
 
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations
         (original_text, translated_text, source_language, target_language,
          unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('INACTIVE', 'INACTIVE', 'az', 'az', '[]'::jsonb, NOW(), 1, False, 1)
-    """)
+    """))
 
     db.commit()
 
@@ -507,10 +621,10 @@ def test_get_user_transliteration_history_not_auth_user(test_client, db):
 
 def test_delete_transliteration_history_success_auth_user(test_client, db, override_get_current_user):
     # inserting test data into test DB
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-    """)
+    """))
     db.commit()
 
     response = test_client.delete("/v1/transliteration/me/all")
@@ -527,7 +641,7 @@ def test_delete_transliteration_history_success_auth_user(test_client, db, overr
     assert data["data"]["status"] == 1
     assert data["data"]["user_id"] == 1
 
-    row = db.execute("SELECT * FROM transliterations WHERE user_id = 1").fetchall()
+    row = db.execute(text("SELECT * FROM transliterations WHERE user_id = 1")).fetchall()
     assert len(row) == 0 
 
 
@@ -546,7 +660,7 @@ def test_delete_transliteration_history_auth_user_with_no_data(test_client, db, 
     assert data["data"]["status"] == 1
     assert data["data"]["user_id"] == 1
 
-    row = db.execute("SELECT * FROM transliterations WHERE user_id = 1").fetchall()
+    row = db.execute(text("SELECT * FROM transliterations WHERE user_id = 1")).fetchall()
     assert len(row) == 0 
 
 
@@ -555,21 +669,33 @@ def test_delete_transliteration_history_non_auth_user(test_client):
     assert response.status_code == 401
 
 
-def test_delete_transliteration_history_other_users_data(test_client, db, override_get_current_user):
+def test_delete_transliteration_history_other_users_data(test_client, db, override_get_current_user, create_test_user):
+    userB = create_test_user(
+            id=2,
+            email="test2@example.com",
+            name="John1234!",
+            password="Strongpassword1234!")
+    
     # inserting record for another user (user_id = 2)
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations (
             original_text, translated_text, source_language,
             target_language, unrecognized_symbols,
             created_at, status, active, user_id
         )
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 2)
-    """)
+    """))
     db.commit()
 
-    # override_get_current_user will return user with id 1, but the record belongs to user with id 2, so it should return 404
     response = test_client.delete("/v1/transliteration/me/all")
-    assert response.status_code == 404
+    assert response.status_code == 200
+
+    # user B data must remain untouched
+    rows = db.execute(text("""
+        SELECT * FROM transliterations WHERE user_id = 2
+    """)).fetchall()
+
+    assert len(rows) == 1
 
 # --------------------------------------------------------------
 
@@ -577,10 +703,10 @@ def test_delete_transliteration_history_other_users_data(test_client, db, overri
 
 def test_delete_single_transliteration_success_auth_user(test_client, db, override_get_current_user):
     # inserting test data into test DB
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations (original_text, translated_text, source_language, target_language, unrecognized_symbols, created_at, status, active, user_id)
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 1)
-    """)
+    """))
     db.commit()
 
     response = test_client.delete("/v1/transliteration/me/1")
@@ -603,7 +729,7 @@ def test_delete_single_transliteration_success_auth_user(test_client, db, overri
     assert data["data"]["status"] == 1
     assert data["data"]["user_id"] == 1
 
-    row = db.execute("SELECT * FROM transliterations WHERE user_id = 1").fetchall()
+    row = db.execute(text("SELECT * FROM transliterations WHERE user_id = 1")).fetchall()
     assert len(row) == 0 
 
 
@@ -617,18 +743,31 @@ def test_delete_single_transliteration_non_auth_user(test_client):
     assert response.status_code == 401
 
 
-def test_delete_single_transliteration_other_users_data(test_client, db, override_get_current_user):
+def test_delete_single_transliteration_other_users_data(test_client, db, override_get_current_user, create_test_user):
+    userB = create_test_user(
+            id=2,
+            email="test2@example.com",
+            name="John1234!",
+            password="Strongpassword1234!")
+    
     # inserting record for another user (user_id = 2)
-    db.execute("""
+    db.execute(text("""
         INSERT INTO transliterations (
             original_text, translated_text, source_language,
-            target_language, unrecognized_symbols,66
+            target_language, unrecognized_symbols,
             created_at, status, active, user_id
         )
         VALUES ('Салам', 'Salam', 'az', 'az', '[]'::jsonb, NOW(), 1, True, 2)
-    """)
+    """))
     db.commit()
 
     # override_get_current_user will return user with id 1, but the record belongs to user with id 2, so it should return 404
     response = test_client.delete("/v1/transliteration/me/1")
     assert response.status_code == 404
+
+    # user B data must remain untouched
+    rows = db.execute(text("""
+        SELECT * FROM transliterations WHERE user_id = 2
+    """)).fetchall()
+
+    assert len(rows) == 1

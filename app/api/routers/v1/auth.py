@@ -1,5 +1,5 @@
 from fastapi.security import HTTPAuthorizationCredentials
-from auth.dependencies import security
+from app.auth.dependencies import security
 from app.core.rate_limiter import rate_limit_auth, rate_limit_private
 from fastapi import APIRouter, Body, Depends, Request, Response
 from fastapi.responses import JSONResponse

@@ -10,7 +10,7 @@ from app.core.models import User
 from passlib.context import CryptContext
 
 from app.core.models.refresh_token import RefreshToken
-from auth.jwt_based_blacklist import blacklist
+from app.auth.jwt_based_blacklist import blacklist
 from app.exceptions.handlers import AppException
 from app.repositories.auth_repository import create_user, create_token, soft_delete
 from app.utils.custom_response_codes import MESSAGES, ResponseCode

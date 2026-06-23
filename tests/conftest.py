@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.auth.dependencies import get_optional_current_user, get_current_user
 from app.core.database import Base, get_db
 from app.core.models.user_model import User
+from app.core.rate_limiter import rate_limit_auth, rate_limit_private, rate_limit_public
 from app.main import app
+
 
 import os
 from dotenv import load_dotenv
@@ -61,21 +63,23 @@ def test_client(db: Session):
         app.dependency_overrides.pop(get_db, None)
 
 
-@pytest.fixture
-def test_user():
-    from app.auth.security import hash_password
-    return User(
-        id=1,
-        name="John123!",
-        email="testuser@example.com",
-        hashed_password=hash_password("Strongpassword123!")
-    )
+# @pytest.fixture
+# def test_user():
+#     from app.auth.security import hash_password
+#     return User(
+#         id=1,
+#         name="John123!",
+#         email="testuser@example.com",
+#         hashed_password=hash_password("Strongpassword123!")
+#     )
 
 
 @pytest.fixture(scope="function")
-def override_get_optional_current_user(test_user):
+def override_get_optional_current_user(create_test_user):
+    user = create_test_user()
+
     def _override():
-        return test_user
+        return user
 
     app.dependency_overrides[get_optional_current_user] = _override
 
@@ -85,9 +89,11 @@ def override_get_optional_current_user(test_user):
 
 
 @pytest.fixture(scope="function")
-def override_get_current_user(test_user):
+def override_get_current_user(create_test_user):
+    user = create_test_user()
+
     def _override():
-        return test_user
+        return user
 
     app.dependency_overrides[get_current_user] = _override
 
@@ -100,17 +106,20 @@ def override_get_current_user(test_user):
 def create_test_user(db):
     from app.auth.security import hash_password
     def _create_test_user(
+            id=1,
             email="test@example.com",
             name="John123!",
             password="Strongpassword123!"
         ):
         user = User(
+            id=id,
             name=name,
             email=email,
             hashed_password=hash_password(password)
         )
         db.add(user)
-        db.commit()
+        #db.commit()
+        db.flush()  
         db.refresh(user)
 
         return user
@@ -131,3 +140,11 @@ def auth_user_with_cookie(test_client, create_test_user):
 
     return refresh_token
     
+
+@pytest.fixture(autouse=True)
+def disable_rate_limiting():
+    app.dependency_overrides[rate_limit_private] = lambda: None
+    app.dependency_overrides[rate_limit_auth] = lambda: None
+    app.dependency_overrides[rate_limit_public] = lambda: None
+    yield
+    app.dependency_overrides.clear()
